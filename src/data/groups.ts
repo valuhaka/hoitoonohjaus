@@ -1,4 +1,5 @@
 import type { BookingConfig, Contact } from '../lib/booking'
+import { LUVN_MUNICIPALITIES, type Eligibility } from '../lib/eligibility'
 import type { Coords } from '../lib/geo'
 import type { HashtagId } from './hashtags'
 import type { EnrolmentStatus, Lang } from './treatments'
@@ -34,6 +35,7 @@ export type GroupListing = {
   fee: number | null
   contact: Contact
   booking: BookingConfig
+  eligibility: Eligibility
 }
 
 // Coordinates are WGS84 (lat/lon) and cover the LUVN and HUS areas
@@ -63,6 +65,7 @@ export const GROUPS: GroupListing[] = [
     fee: 0,
     contact: { name: 'Hanna Rautio', role: 'Sosiaaliohjaaja', phone: '+358 9 0000 0101', email: 'hanna.rautio@luvn.example' },
     booking: LUVN_BOOKING,
+    eligibility: { minAge: 18, maxAge: null, municipalities: LUVN_MUNICIPALITIES, referral: 'professional', excludes: [], notes: ['Sitoutuminen kahdeksaan tapaamiseen'] },
   },
   {
     id: 'g02',
@@ -85,6 +88,7 @@ export const GROUPS: GroupListing[] = [
     fee: 0,
     contact: { name: 'Timo Kallio', role: 'Psykologi', phone: '+358 9 0000 0102', email: 'timo.kallio@luvn.example' },
     booking: LUVN_BOOKING,
+    eligibility: { minAge: 18, maxAge: null, municipalities: LUVN_MUNICIPALITIES, referral: 'professional', excludes: ['paihteet'], notes: ['Lievä tai keskivaikea masennus', 'Arviokäynti ennen ryhmän alkua'] },
   },
   {
     id: 'g03',
@@ -107,6 +111,7 @@ export const GROUPS: GroupListing[] = [
     fee: 0,
     contact: { name: 'Maria Salo', role: 'Psykiatrinen sairaanhoitaja', phone: '+358 9 0000 0103', email: 'maria.salo@luvn.example' },
     booking: LUVN_BOOKING,
+    eligibility: { minAge: 18, maxAge: null, municipalities: LUVN_MUNICIPALITIES, referral: 'professional', excludes: [], notes: ['Arviokäynti ennen ryhmän alkua'] },
   },
   {
     id: 'g04',
@@ -129,6 +134,7 @@ export const GROUPS: GroupListing[] = [
     fee: 0,
     contact: { name: 'Jonna Lehto', role: 'Psykologi', phone: '+358 9 0000 0104', email: 'jonna.lehto@luvn.example' },
     booking: LUVN_BOOKING,
+    eligibility: { minAge: 18, maxAge: null, municipalities: LUVN_MUNICIPALITIES, referral: 'none', excludes: [], notes: ['Tietokone tai älypuhelin ja verkkoyhteys'] },
   },
   {
     id: 'g05',
@@ -151,6 +157,7 @@ export const GROUPS: GroupListing[] = [
     fee: 0,
     contact: { name: 'Pirjo Aaltonen', role: 'Ryhmänohjaaja', phone: '+358 9 0000 0205', email: 'pirjo.aaltonen@silta.example' },
     booking: { type: 'contact' },
+    eligibility: { minAge: 18, maxAge: null, municipalities: null, referral: 'none', excludes: [], notes: ['Läheisen kuolemasta vähintään kolme kuukautta'] },
   },
   {
     id: 'g06',
@@ -173,6 +180,7 @@ export const GROUPS: GroupListing[] = [
     fee: 5,
     contact: { name: 'Britt Sjöberg', role: 'Verksamhetsledare', phone: '+358 9 0000 0306', email: 'britt.sjoberg@ankaret.example' },
     booking: { type: 'contact' },
+    eligibility: { minAge: 65, maxAge: null, municipalities: null, referral: 'none', excludes: [], notes: ['Ingen anmälan – Ei ilmoittautumista'] },
   },
   {
     id: 'g07',
@@ -195,6 +203,7 @@ export const GROUPS: GroupListing[] = [
     fee: 0,
     contact: { name: 'Elias Nurmi', role: 'Psykoterapeutti', phone: '+358 9 0000 0107', email: 'elias.nurmi@luvn.example' },
     booking: LUVN_BOOKING,
+    eligibility: { minAge: 18, maxAge: 29, municipalities: LUVN_MUNICIPALITIES, referral: 'professional', excludes: ['paihteet'], notes: ['Hoitosuhde nuorten aikuisten palveluissa'] },
   },
   {
     id: 'g08',
@@ -217,6 +226,7 @@ export const GROUPS: GroupListing[] = [
     fee: 0,
     contact: { name: 'Kirsi Mäkelä', role: 'Psykoterapeutti', phone: '+358 9 0000 0108', email: 'kirsi.makela@luvn.example' },
     booking: LUVN_BOOKING,
+    eligibility: { minAge: 18, maxAge: null, municipalities: LUVN_MUNICIPALITIES, referral: 'doctor', excludes: ['paihteet'], notes: ['Ei akuuttia väkivallan uhkaa', 'Yksilöhoitosuhde ryhmän aikana'] },
   },
   {
     id: 'g09',
@@ -239,6 +249,7 @@ export const GROUPS: GroupListing[] = [
     fee: 0,
     contact: { name: 'Antti Heino', role: 'Toiminnanohjaaja', phone: '+358 9 0000 0409', email: 'antti.heino@mielikki.example' },
     booking: { type: 'external', system: 'Mielikki ry ilmoittautuminen', url: 'https://mielikki.example/ilmoittaudu/g09' },
+    eligibility: { minAge: 18, maxAge: 64, municipalities: null, referral: 'none', excludes: [], notes: ['Työtön tai lomautettu'] },
   },
   {
     id: 'g10',
@@ -261,6 +272,7 @@ export const GROUPS: GroupListing[] = [
     fee: 12,
     contact: { name: 'Anna Lindholm', role: 'Fysioterapeutti', phone: '+358 9 0000 0110', email: 'anna.lindholm@luvn.example' },
     booking: LUVN_BOOKING,
+    eligibility: { minAge: 18, maxAge: null, municipalities: LUVN_MUNICIPALITIES, referral: 'doctor', excludes: [], notes: ['Kipupoliklinikan asiakkuus'] },
   },
   {
     id: 'g11',
@@ -283,6 +295,7 @@ export const GROUPS: GroupListing[] = [
     fee: 0,
     contact: { name: 'Sari Koivisto', role: 'Psykologi', phone: '+358 9 0000 0511', email: 'sari.koivisto@hus.example' },
     booking: { type: 'contact' },
+    eligibility: { minAge: 18, maxAge: null, municipalities: null, referral: 'doctor', excludes: ['paihteet'], notes: ['Erikoissairaanhoidon lähete HUS Psykiatriaan'] },
   },
   {
     id: 'g12',
@@ -305,6 +318,7 @@ export const GROUPS: GroupListing[] = [
     fee: 0,
     contact: { name: 'Oskar Ekholm', role: 'Psykoterapeutti', phone: '+358 9 0000 0512', email: 'oskar.ekholm@hus.example' },
     booking: { type: 'contact' },
+    eligibility: { minAge: 16, maxAge: 22, municipalities: null, referral: 'doctor', excludes: [], notes: ['Erikoissairaanhoidon lähete HUS Nuorisopsykiatriaan'] },
   },
   {
     id: 'g13',
@@ -327,6 +341,7 @@ export const GROUPS: GroupListing[] = [
     fee: 0,
     contact: { name: 'Leena Hirvonen', role: 'Psykiatrinen sairaanhoitaja', phone: '+358 9 0000 0513', email: 'leena.hirvonen@hus.example' },
     booking: { type: 'contact' },
+    eligibility: { minAge: 18, maxAge: null, municipalities: null, referral: 'doctor', excludes: ['paihteet'], notes: ['Erikoissairaanhoidon lähete HUS Psykiatriaan', 'Ei akuuttia väkivallan uhkaa'] },
   },
   {
     id: 'g14',
@@ -349,5 +364,32 @@ export const GROUPS: GroupListing[] = [
     fee: 0,
     contact: { name: 'Mikko Saarinen', role: 'Päihdesairaanhoitaja', phone: '+358 9 0000 0514', email: 'mikko.saarinen@hus.example' },
     booking: { type: 'contact' },
+    eligibility: { minAge: 18, maxAge: null, municipalities: null, referral: 'doctor', excludes: [], notes: ['Sitoutuminen päihteettömyyteen ryhmän ajan'] },
+  },
+  {
+    id: 'g15',
+    name: 'Jännittäjien ryhmä 13–17-vuotiaille',
+    organiser: 'LUVN Lasten ja nuorten mielenterveyspalvelut, Karkkila',
+    method: 'Kognitiivis-behavioraalinen ryhmä (KKT)',
+    format: 'inPerson',
+    address: 'Valtatie 20, Karkkila',
+    municipality: 'Karkkila',
+    coords: { lat: 60.5352, lon: 24.2105 },
+    languages: ['fi'],
+    tags: ['sosiaalinenahdistus', 'yksinaisyys', 'itsetunto', 'ahdistus'],
+    capacity: 8,
+    enrolled: 3,
+    startDate: '2026-11-04',
+    sessions: 8,
+    weekday: 3,
+    startTime: '15:00',
+    endTime: '16:30',
+    fee: 0,
+    contact: { name: 'Riikka Toivonen', role: 'Psykologi', phone: '+358 9 0000 0115', email: 'riikka.toivonen@luvn.example' },
+    booking: LUVN_BOOKING,
+    eligibility: {
+      minAge: 13, maxAge: 17, municipalities: LUVN_MUNICIPALITIES, referral: 'professional', excludes: [],
+      notes: ['Ohjaus terveydenhoitajalta, kuraattorilta tai psykologilta', 'Huoltaja osallistuu aloitustapaamiseen'],
+    },
   },
 ]

@@ -1,7 +1,52 @@
-import { isActive, NO_FILTERS, type FilterGuess, type Filters, type TimeOfDay } from '../lib/filters'
+import type { CSSProperties } from 'react'
+import {
+  DISTANCE_SCALE, FEE_SCALE, isActive, NO_FILTERS, type FilterGuess, type Filters, type Range, type TimeOfDay,
+} from '../lib/filters'
 import { useT } from '../i18n'
 
-const DISTANCES = [10, 25, 50]
+type Suggestion = { className?: string; title?: string }
+
+// Two-handle slider like in online stores; the right end of the scale means "no upper limit"
+const RangeSlider = ({
+  label,
+  value,
+  scale,
+  unit,
+  suggestion,
+  onChange,
+}: {
+  label: string
+  value: Range
+  scale: { max: number; step: number }
+  unit: string
+  suggestion: Suggestion
+  onChange: (range: Range) => void
+}) => {
+  const { t } = useT()
+  const f = t.filters
+  const top = value.max ?? scale.max
+  const text =
+    value.min === 0 && value.max === null ? f.any
+    : value.max === null ? `${f.min} ${value.min} ${unit}`
+    : `${value.min}–${value.max} ${unit}`
+  const style = { '--lo': `${(value.min / scale.max) * 100}%`, '--hi': `${(top / scale.max) * 100}%` } as CSSProperties
+
+  return (
+    <div role="group" aria-label={label} className={['range-filter', suggestion.className].filter(Boolean).join(' ')}
+      title={suggestion.title}>
+      <span className="range-label">{label}<output>{text}</output></span>
+      <div className="range" style={style}>
+        <input type="range" min={0} max={scale.max} step={scale.step} value={value.min} aria-label={`${label}: ${f.min}`}
+          onChange={e => onChange({ ...value, min: Math.min(Number(e.target.value), top) })} />
+        <input type="range" min={0} max={scale.max} step={scale.step} value={top} aria-label={`${label}: ${f.max}`}
+          onChange={e => {
+            const max = Math.max(Number(e.target.value), value.min)
+            onChange({ ...value, max: max >= scale.max ? null : max })
+          }} />
+      </div>
+    </div>
+  )
+}
 
 const toNumber = (value: string) => (value === '' ? null : Number(value))
 const fromNumber = (value: number | null) => (value === null ? '' : String(value))
@@ -18,9 +63,9 @@ export const FilterBar = ({
   const { t } = useT()
   const f = t.filters
   // A filter counts as suggested while it still holds the guessed value
-  const suggested = (key: keyof Filters) => {
+  const suggested = (key: keyof Filters): Suggestion => {
     const reason = guess.reasons[key]
-    return reason && filters[key] === guess.filters[key]
+    return reason && JSON.stringify(filters[key]) === JSON.stringify(guess.filters[key])
       ? { className: 'suggested', title: `${f.suggested}: ${reason}` }
       : {}
   }
@@ -45,22 +90,10 @@ export const FilterBar = ({
           <option value="evening">{f.timeEvening}</option>
         </select>
       </label>
-      <label {...suggested('maxFee')}>
-        {f.cost}
-        <select value={fromNumber(filters.maxFee)} onChange={e => set('maxFee', toNumber(e.target.value))}>
-          <option value="">{f.costAny}</option>
-          <option value="0">{f.costFree}</option>
-          <option value="10">{f.costMax10}</option>
-        </select>
-      </label>
-      <label {...suggested('maxDistanceKm')}>
-        {f.distance}
-        <select value={fromNumber(filters.maxDistanceKm)}
-          onChange={e => set('maxDistanceKm', toNumber(e.target.value))}>
-          <option value="">{f.distanceAny}</option>
-          {DISTANCES.map(km => <option key={km} value={km}>{f.distanceMax(km)}</option>)}
-        </select>
-      </label>
+      <RangeSlider label={f.cost} unit="€" value={filters.fee} scale={FEE_SCALE}
+        suggestion={suggested('fee')} onChange={v => set('fee', v)} />
+      <RangeSlider label={f.distance} unit="km" value={filters.distanceKm} scale={DISTANCE_SCALE}
+        suggestion={suggested('distanceKm')} onChange={v => set('distanceKm', v)} />
       {isActive(filters) && (
         <button className="secondary" onClick={() => onChange(NO_FILTERS)}>{f.reset}</button>
       )}

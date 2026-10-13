@@ -13,7 +13,15 @@
       <p class="hint">Cards column (see group-card.html). Needs `npm run dev` and public/maps/uusimaa.pmtiles.</p>
     </div>
     <aside class="map-panel" aria-label="Ryhmät kartalla">
-      <div class="map"><div id="map" class="map-canvas"></div></div>
+      <div class="map contact-labels">
+        <div id="map" class="map-canvas"></div>
+        <button class="secondary map-expand" aria-pressed="false">Suurenna kartta</button>
+        <ul class="map-legend">
+          <li><span class="key home"></span>Koti</li>
+          <li><span class="key network"></span>Nykyiset SOTE-yhteydet</li>
+          <li><span class="key group"></span>Ryhmät</li>
+        </ul>
+      </div>
     </aside>
   </div>
 </main>

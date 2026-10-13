@@ -1,5 +1,6 @@
 import type { GroupListing } from '../data/groups'
 import type { HashtagId } from '../data/hashtags'
+import { isEligible, type Candidate } from './eligibility'
 import { distanceKm, type Coords } from './geo'
 
 export type Match = {
@@ -52,13 +53,16 @@ export const fitScore = (
   return { score: denominator === 0 ? 0 : dot / denominator, matched }
 }
 
+// With a candidate, groups whose inclusion criteria rule the patient out are left out
 export const rankGroups = (
   patientTags: HashtagId[],
   home: Coords,
   groups: GroupListing[],
+  candidate?: Omit<Candidate, 'tags'>,
 ): Match[] => {
   const idf = idfWeights(groups)
   const matches = groups
+    .filter(group => !candidate || isEligible(group.eligibility, { ...candidate, tags: patientTags }))
     .map(group => ({
       group,
       ...fitScore(patientTags, group.tags, idf),

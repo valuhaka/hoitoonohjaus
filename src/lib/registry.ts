@@ -1,15 +1,17 @@
 import { PATIENTS, type Patient } from '../data/patients'
+import type { User } from './auth'
 import { isValidHetu, normalizeHetu } from './hetu'
 
 // Stand-in for the customer organisation's patient information system integration
 
 export type AccessReason = 'careRelationship' | 'referral' | 'consultation'
 
+// Patients and proxies open their own data; the role is logged instead of a basis
 export type AuditEntry = {
   at: string
   user: string
   hetu: string
-  reason: AccessReason
+  reason: AccessReason | 'own' | 'proxy'
 }
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
@@ -17,8 +19,11 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 export type SearchResult =
   | { kind: 'found'; patients: Patient[] }
   | { kind: 'invalid'; message: 'invalidHetu' | 'nameTooShort' }
+  | { kind: 'forbidden' }
 
-export const searchPatients = async (query: string): Promise<SearchResult> => {
+// Only professionals can search the register; patients and proxies never reach other people's data
+export const searchPatients = async (query: string, user: User): Promise<SearchResult> => {
+  if (user.role !== 'professional') return { kind: 'forbidden' }
   await delay(300)
   const q = query.trim()
   if (/^\d{6}/.test(q)) {

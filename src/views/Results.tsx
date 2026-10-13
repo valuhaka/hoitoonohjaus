@@ -2,7 +2,9 @@ import { useMemo, useRef, useState } from 'react'
 import type { GroupListing } from '../data/groups'
 import { HASHTAGS, HASHTAG_IDS, type HashtagId } from '../data/hashtags'
 import type { Patient } from '../data/patients'
+import type { User } from '../lib/auth'
 import type { Extraction } from '../lib/extraction'
+import { ageAt } from '../lib/hetu'
 import { applyFilters, guessFilters, type Filters } from '../lib/filters'
 import { rankGroups, type Match } from '../lib/match'
 import { formatFee, useT, type Lang } from '../i18n'
@@ -63,10 +65,8 @@ const GroupCard = ({
         </div>
       </div>
       <div className="card-side">
-        <span className={seatsLeft === 0 ? 'seats none' : 'seats'}>{seatsText(match, lang)}</span>
-        <button className="primary" disabled={seatsLeft === 0 || reserved} onClick={onReserve}>
-          {reserved ? t.reserved : t.reserve}
-        </button>
+        <span className={seatsLeft === 0 ? 'seats none' : 'seats'}>{reserved ? t.reserved : seatsText(match, lang)}</span>
+        <button className="primary" onClick={onReserve}>{t.moreInfo}</button>
       </div>
     </article>
   )
@@ -76,13 +76,13 @@ export const Results = ({
   patient,
   extraction,
   groups,
-  referrer,
+  user,
   onNewSearch,
 }: {
   patient: Patient
   groups: GroupListing[]
   extraction: Extraction
-  referrer: string
+  user: User
   onNewSearch: () => void
 }) => {
   const { t, lang } = useT()
@@ -98,11 +98,14 @@ export const Results = ({
 
   const ranked = useMemo(() => {
     const held = groups.map(g => (holds[g.id] && g.enrolled !== null ? { ...g, enrolled: g.enrolled + 1 } : g))
-    return rankGroups(tags, patient.homeCoords, held)
+    // Inclusion criteria leave out groups the patient cannot join
+    return rankGroups(tags, patient.homeCoords, held, { age: ageAt(patient.hetu, new Date()), municipality: patient.municipality })
   }, [tags, patient, groups, holds])
   const visible = applyFilters(ranked, filters, new Date())
   const bookingMatch = ranked.find(m => m.group.id === bookingFor)
   const addable = HASHTAG_IDS.filter(id => !tags.includes(id))
+  // A non-disclosure order hides home and care contacts from everyone but the patient
+  const showLocations = !patient.nonDisclosure || user.hetu === patient.hetu
 
   const selectFromMap = (groupId: string) => {
     setActiveId(groupId)
@@ -148,9 +151,10 @@ export const Results = ({
           </div>
         </div>
         <aside className="map-panel" aria-label={t.mapLabel}>
-          <GroupMap matches={visible}
-            home={patient.nonDisclosure ? null : patient.homeCoords}
-            radiusKm={filters.maxDistanceKm}
+          <GroupMap matches={visible} all={ranked}
+            home={showLocations ? patient.homeCoords : null}
+            contacts={showLocations ? patient.contacts : []}
+            radiusKm={filters.distanceKm.max}
             activeId={activeId}
             onSelect={selectFromMap} />
         </aside>
@@ -161,7 +165,7 @@ export const Results = ({
       </div>
 
       {bookingMatch && (
-        <BookingDialog match={bookingMatch} referrer={referrer}
+        <BookingDialog match={bookingMatch} referrer={user.name}
           onReserved={reference => setHolds(h => ({ ...h, [bookingMatch.group.id]: reference }))}
           onClose={() => setBookingFor(null)} />
       )}

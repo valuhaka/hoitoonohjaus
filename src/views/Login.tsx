@@ -1,36 +1,51 @@
 import { useState, type FormEvent } from 'react'
+import { authenticate, DEMO_PASSWORD, demoUsername, ROLES, type Role, type User } from '../lib/auth'
 import { useT } from '../i18n'
-
-export type User = { name: string; title: string }
-
-// Demo accounts only; production uses the organisation's identity provider
-const DEMO_USER: User = { name: 'Iiris Ainias', title: 'Psykologi' }
 
 export const Login = ({ onLogin }: { onLogin: (user: User) => void }) => {
   const { t } = useT()
-  const [username, setUsername] = useState('demo')
-  const [password, setPassword] = useState('demo')
+  const [role, setRole] = useState<Role>('professional')
+  const [username, setUsername] = useState(demoUsername('professional'))
+  const [password, setPassword] = useState(DEMO_PASSWORD)
   const [error, setError] = useState(false)
-  const [cardPending, setCardPending] = useState(false)
+  const [strongAuthNotice, setStrongAuthNotice] = useState(false)
+
+  const chooseRole = (next: Role) => {
+    setRole(next)
+    setUsername(demoUsername(next))
+    setPassword(DEMO_PASSWORD)
+    setError(false)
+  }
 
   const submit = (e: FormEvent) => {
     e.preventDefault()
-    if (username === 'demo' && password === 'demo') onLogin(DEMO_USER)
+    const user = authenticate(role, username, password)
+    if (user) onLogin(user)
     else setError(true)
-  }
-
-  const cardLogin = () => {
-    setCardPending(true)
-    setTimeout(() => onLogin(DEMO_USER), 1200)
   }
 
   return (
     <main className="center">
       <section className="panel login">
         <h1>{t.loginTitle}</h1>
-        <button className="primary wide" onClick={cardLogin} disabled={cardPending}>
-          {cardPending && <span className="spinner small" />} {t.loginCard}
+        <fieldset className="role-choice">
+          <legend>{t.roleLabel}</legend>
+          {ROLES.map(r => (
+            <label key={r} className={r === role ? 'role-option active' : 'role-option'}>
+              <input type="radio" name="role" value={r} checked={r === role} onChange={() => chooseRole(r)} />
+              <strong>{t.roles[r]}</strong>
+              <small>{t.roleHints[r]}</small>
+            </label>
+          ))}
+        </fieldset>
+
+        {/* For show only: strong authentication goes through Suomi.fi or the professional card reader */}
+        <button className="primary wide strong-auth" onClick={() => setStrongAuthNotice(true)}>
+          <span>{t.strongAuth}</span>
+          <small>{role === 'professional' ? t.strongAuthVia.professional : t.strongAuthVia.citizen}</small>
         </button>
+        {strongAuthNotice && <p className="hint">{t.strongAuthDemo}</p>}
+
         <div className="divider">{t.loginOr}</div>
         <form onSubmit={submit}>
           <label>
@@ -48,6 +63,7 @@ export const Login = ({ onLogin }: { onLogin: (user: User) => void }) => {
           </label>
           {error && <p className="error">{t.loginError}</p>}
           <button className="secondary wide" type="submit">{t.loginSubmit}</button>
+          <p className="hint">{t.demoAccount(demoUsername(role))}</p>
         </form>
       </section>
     </main>

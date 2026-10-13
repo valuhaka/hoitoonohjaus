@@ -1,3 +1,4 @@
+import { UNKNOWN_ELIGIBILITY } from '../lib/eligibility'
 import { GROUPS, type GroupListing } from './groups'
 import { TREATMENTS, type TreatmentKind, type TreatmentListing, type TreatmentLocation } from './treatments'
 
@@ -53,6 +54,12 @@ const toListing = (t: TreatmentListing, location: TreatmentLocation | null, id: 
       ...(t.contact.email && { email: t.contact.email }),
     },
     booking: { type: 'external', system: hostname(t.contact.url), url: t.contact.url },
+    // Sources publish no structured criteria; only the referral flag and the target group text
+    eligibility: {
+      ...UNKNOWN_ELIGIBILITY,
+      referral: t.referral === null ? 'unknown' : t.referral ? 'required' : 'none',
+      notes: t.targetGroup ? [t.targetGroup] : [],
+    },
   }
 }
 

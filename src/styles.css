@@ -59,11 +59,19 @@ h3 { font-size: 1.05rem; }
 
 /* Form controls */
 label { display: grid; gap: 0.3rem; font-size: 0.9rem; font-weight: 500; }
-input, select {
+input, select, textarea {
   font: inherit; padding: 0.55rem 0.7rem; border: 1px solid var(--border); background: var(--surface); color: var(--text);
   box-shadow: var(--shadow-inset);
 }
-input:focus, select:focus { outline: 2px solid var(--green); outline-offset: 1px; }
+input:focus, select:focus, textarea:focus { outline: 2px solid var(--green); outline-offset: 1px; }
+textarea { resize: vertical; line-height: 1.45; }
+select:disabled, input:disabled, textarea:disabled { background: var(--bg); color: var(--muted); box-shadow: none; cursor: not-allowed; }
+label.disabled, fieldset:disabled { color: var(--muted); }
+input[type='checkbox'], input[type='radio'] { box-shadow: none; padding: 0; margin: 0; accent-color: var(--green-dark); width: 1rem; height: 1rem; }
+/* Checkbox rows: box on the left, text wrapping beside it */
+label.check { display: flex; gap: 0.6rem; align-items: flex-start; font-weight: 400; }
+label.check input { margin-top: 0.15rem; flex: none; }
+.ok { color: var(--green-dark); font-size: 0.875rem; margin: 0; font-weight: 600; }
 a { color: var(--green-dark); }
 
 /* Buttons: a straight left edge and a slanted right edge, "|Label/".
@@ -146,8 +154,25 @@ button.data-switch:focus-visible { outline: 2px solid var(--green); outline-offs
 .topbar-right { display: flex; align-items: center; gap: var(--space); color: var(--muted); }
 
 /* Login */
-.login { width: 100%; max-width: 380px; display: grid; gap: 0.75rem; }
+.login { width: 100%; max-width: 420px; display: grid; gap: 0.75rem; }
 .login form { display: grid; gap: 0.75rem; }
+/* Role choice: three joined boxes, the chosen one filled */
+.role-choice { display: grid; grid-template-columns: repeat(3, 1fr); margin: 0; padding: 0; border: 0; }
+.role-choice legend { padding: 0; margin-bottom: 0.3rem; font-size: 0.9rem; font-weight: 500; }
+.role-option {
+  display: grid; gap: 0.15rem; align-content: start; padding: 0.6rem 0.7rem; cursor: pointer;
+  border: 1px solid #c5d6d0; background: linear-gradient(#fff, #edf3f1); font-weight: 400;
+}
+.role-option + .role-option { border-left: 0; }
+.role-option input { position: absolute; opacity: 0; pointer-events: none; }
+.role-option strong { font-weight: 600; }
+.role-option small { color: var(--muted); font-size: 0.75rem; line-height: 1.3; }
+.role-option:hover { background: linear-gradient(#fff, #e2efea); }
+.role-option.active { background: linear-gradient(#0b6a52, var(--green-dark)); border-color: var(--green-dark); color: #fff; box-shadow: var(--highlight); }
+.role-option.active small { color: var(--green-light); }
+.role-option:has(input:focus-visible) { outline: 2px solid var(--green); outline-offset: -2px; }
+.strong-auth { flex-direction: column; gap: 0.1rem; }
+.strong-auth small { font-weight: 400; font-size: 0.75rem; opacity: 0.85; }
 .divider { text-align: center; color: var(--muted); font-size: 0.85rem; }
 
 /* Patient search */
@@ -182,11 +207,29 @@ button.data-switch:focus-visible { outline: 2px solid var(--green); outline-offs
 .identity { display: grid; grid-template-columns: auto 1fr; gap: 0.3rem var(--space); margin: 0; padding: 0.75rem; background: var(--tint); }
 .identity dt { color: var(--muted); }
 .identity dd { margin: 0; font-weight: 600; }
+.acknowledge { padding: 0.75rem; border: 1px solid var(--green-light); background: var(--tint); }
+
+/* Data sources: what the matching may use, then a summary of exactly that */
+.sources { display: grid; gap: 0.9rem; margin: 0; padding: var(--space) 0 0; border: 0; border-top: 1px solid var(--border); min-width: 0; }
+.sources legend { padding: 0 0 0.25rem; font-weight: 600; color: var(--green-dark); }
+.sources:disabled legend { color: var(--muted); }
+.source { display: grid; gap: 0.4rem; }
+.sub-checks { display: grid; gap: 0.35rem; padding-left: 1.6rem; }
+.sub-checks .hint { font-size: 0.8rem; }
+.chat-prompt { margin: 0; padding: 0.5rem 0.75rem; max-width: 85%; background: var(--tint); border-left: 3px solid var(--green-light); font-size: 0.9rem; }
+.chat-input { width: 100%; }
+.navigator-row { display: flex; gap: 0.5rem; }
+.navigator-row input { flex: 1; min-width: 0; letter-spacing: 0.08em; }
+.summary { padding: 0.75rem var(--space); border: 1px solid var(--border); border-left: 4px solid var(--green); background: linear-gradient(#fbfdfc, #f2f7f5); font-size: 0.9rem; }
+.summary ul { margin: 0.3rem 0 0.4rem; padding-left: 1.2rem; }
+.self-service { display: grid; gap: 0.9rem; }
 
 /* Booking dialog */
 .details { display: grid; grid-template-columns: max-content 1fr; gap: 0.4rem 1.25rem; margin: 0; padding: var(--space) 0; border-block: 1px solid var(--border); }
 .details dt { color: var(--muted); }
 .details dd { margin: 0; }
+.criteria h3 { font-size: 0.9rem; margin-bottom: 0.3rem; }
+.criteria ul { margin: 0; padding-left: 1.2rem; display: grid; gap: 0.2rem; }
 .contact { padding: var(--space); background: var(--tint); border-left: 4px solid var(--green); }
 .contact h3 { font-size: 0.9rem; margin-bottom: 0.4rem; }
 .contact p { margin: 0.15rem 0; }
@@ -198,6 +241,34 @@ button.data-switch:focus-visible { outline: 2px solid var(--green); outline-offs
 /* Filters guessed from the patient record; the reason is in the title tooltip */
 .filters label.suggested { color: var(--green-dark); }
 .filters label.suggested select { border-color: var(--green); background: var(--tint); }
+/* Two-handle range slider: two overlaid range inputs, the chosen span drawn on the track */
+.range-filter { display: grid; gap: 0.3rem; min-width: 180px; flex: 1 1 180px; font-size: 0.9rem; font-weight: 500; }
+.range-label { display: flex; justify-content: space-between; gap: 0.5rem; }
+.range-label output { font-weight: 600; color: var(--green-dark); }
+.range-filter.suggested .range-label { color: var(--green-dark); }
+.range-filter.suggested .range::before { background: linear-gradient(90deg, #d9e4e0 var(--lo), var(--green) var(--lo), var(--green) var(--hi), #d9e4e0 var(--hi)); }
+.range { position: relative; height: 1.5rem; }
+.range::before {
+  content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 4px; transform: translateY(-50%);
+  background: linear-gradient(90deg, #d9e4e0 var(--lo), var(--green-dark) var(--lo), var(--green-dark) var(--hi), #d9e4e0 var(--hi));
+  box-shadow: var(--shadow-inset);
+}
+.range input {
+  position: absolute; inset: 0; width: 100%; margin: 0; padding: 0; border: 0; background: none; box-shadow: none;
+  -webkit-appearance: none; appearance: none; pointer-events: none;
+}
+.range input:focus { outline: none; }
+.range input::-webkit-slider-thumb {
+  -webkit-appearance: none; pointer-events: auto; cursor: pointer; width: 14px; height: 20px;
+  background: linear-gradient(#fff, #e3ece9); border: 1px solid #8fa39d; box-shadow: 0 1px 2px rgb(0 0 0 / 0.2);
+}
+.range input::-moz-range-thumb {
+  pointer-events: auto; cursor: pointer; width: 12px; height: 18px; border-radius: 0;
+  background: linear-gradient(#fff, #e3ece9); border: 1px solid #8fa39d; box-shadow: 0 1px 2px rgb(0 0 0 / 0.2);
+}
+.range input::-moz-range-track { background: none; }
+.range input:focus-visible::-webkit-slider-thumb { border-color: var(--green); outline: 2px solid var(--green); }
+.range input:focus-visible::-moz-range-thumb { border-color: var(--green); outline: 2px solid var(--green); }
 
 /* Patient banner */
 .patient-banner {
@@ -277,10 +348,35 @@ button.data-switch:focus-visible { outline: 2px solid var(--green); outline-offs
 .results-layout { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 1.5rem; align-items: start; }
 .results-main { display: grid; gap: var(--space); min-width: 0; }
 .map-panel {
-  position: sticky; top: calc(var(--topbar-h) + var(--space)); height: calc(100vh - var(--topbar-h) - var(--statusbar-h) - 6rem);
+  position: sticky; top: calc(var(--topbar-h) + var(--space)); aspect-ratio: 1;
   border: 1px solid var(--border); background: var(--surface); box-shadow: var(--shadow-raised);
 }
 .map { position: relative; width: 100%; height: 100%; }
+/* Enlarged map: a window over the page */
+.map.expanded {
+  position: fixed; z-index: 31; inset: calc(var(--topbar-h) + var(--space)) var(--space) calc(var(--statusbar-h) + var(--space));
+  width: auto; height: auto; border: 1px solid var(--border); border-top: 3px solid var(--green); box-shadow: var(--shadow-window);
+}
+/* The sticky panel is its own stacking context, so it has to rise above the page while enlarged */
+.map-panel:has(.map.expanded) { z-index: 31; }
+.map-backdrop { position: fixed; inset: 0; z-index: 30; background: rgb(1 37 28 / 0.35); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+.map-expand { position: absolute; top: 10px; left: 10px; z-index: 2; font-size: 0.8rem; padding-block: 0.3rem; }
+.map-legend {
+  position: absolute; left: 10px; bottom: 10px; z-index: 2; margin: 0; padding: 0.4rem 0.6rem; list-style: none;
+  display: grid; gap: 0.2rem; font-size: 0.72rem; color: var(--text);
+  background: rgb(255 255 255 / 0.88); border: 1px solid var(--border); box-shadow: var(--shadow-raised);
+}
+.map-legend li { display: flex; align-items: center; gap: 0.4rem; }
+.map-legend .key { width: 12px; height: 12px; flex: none; }
+.map-legend .key.home { background: #fff; border: 2px solid var(--green-dark); }
+.map-legend .key.network { height: 0; border-top: 2px solid #7d8a86; }
+.map-legend .key.group { background: var(--green-dark); }
+/* Current care contacts: grey squares with a short label, joined by grey lines */
+.map-contact { display: flex; align-items: center; gap: 0.3rem; font: 600 0.68rem var(--font); color: #4f5c58; pointer-events: auto; }
+.map-contact span:first-child { width: 10px; height: 10px; background: #7d8a86; border: 2px solid #fff; box-shadow: 0 1px 2px rgb(0 0 0 / 0.3); }
+.map-contact span:last-child { display: none; padding: 0 0.25rem; background: rgb(255 255 255 / 0.85); }
+.map.contact-labels .map-contact span:last-child, .map-contact:hover span:last-child { display: inline; }
+.map-contact:hover { z-index: 3; }
 /* Sized without position: MapLibre's own CSS sets position on this element */
 .map-canvas { width: 100%; height: 100%; }
 .maplibregl-map { font-family: var(--font); }
@@ -315,7 +411,7 @@ button.data-switch:focus-visible { outline: 2px solid var(--green); outline-offs
 
 @media (max-width: 900px) {
   .results-layout { grid-template-columns: 1fr; }
-  .map-panel { position: static; height: 300px; order: -1; }
+  .map-panel { position: static; order: -1; max-width: 480px; width: 100%; justify-self: center; }
 }
 
 @media (max-width: 640px) {
@@ -327,4 +423,6 @@ button.data-switch:focus-visible { outline: 2px solid var(--green); outline-offs
   .filters label { flex: 1 1 140px; min-width: 0; }
   .details { grid-template-columns: 1fr; gap: 0.1rem; }
   .details dd { margin-bottom: 0.4rem; }
+  .role-choice { grid-template-columns: 1fr; }
+  .role-option + .role-option { border-left: 1px solid #c5d6d0; border-top: 0; }
 }

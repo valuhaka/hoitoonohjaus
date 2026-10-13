@@ -1,45 +1,47 @@
 import { useCallback, useEffect, useState } from 'react'
 import { LISTINGS, type DataSource } from './data/listings'
-import type { Patient } from './data/patients'
-import { mockExtractor, type Extraction } from './lib/extraction'
+import { canAccess, type User } from './lib/auth'
+import { mockExtractor, type Extraction, type ExtractionInput } from './lib/extraction'
 import { logAccess, type AccessReason, type AuditEntry } from './lib/registry'
 import { DICTS, I18n, LANGS, type Lang } from './i18n'
-import { Login, type User } from './views/Login'
+import { Login } from './views/Login'
 import { PatientSearch } from './views/PatientSearch'
 import { Processing } from './views/Processing'
 import { Results } from './views/Results'
+import { SelfService } from './views/SelfService'
 import { StatusBar } from './views/StatusBar'
 
 type Screen =
-  | { name: 'search' }
-  | { name: 'processing'; patient: Patient }
-  | { name: 'results'; patient: Patient; extraction: Extraction }
+  | { name: 'start' }
+  | { name: 'processing'; input: ExtractionInput }
+  | { name: 'results'; input: ExtractionInput; extraction: Extraction }
 
 export const App = () => {
   const [lang, setLang] = useState<Lang>('fi')
   const [dataSource, setDataSource] = useState<DataSource>('synthetic')
   const [user, setUser] = useState<User | null>(null)
   const [syncedAt, setSyncedAt] = useState(() => new Date())
-  const [screen, setScreen] = useState<Screen>({ name: 'search' })
+  const [screen, setScreen] = useState<Screen>({ name: 'start' })
   const [, setAudit] = useState<AuditEntry[]>([])
   const t = DICTS[lang]
 
   useEffect(() => { document.documentElement.lang = lang }, [lang])
 
-  const open = (patient: Patient, reason: AccessReason) => {
-    setAudit(log => logAccess(log, { user: user?.name ?? '', hetu: patient.hetu, reason }))
-    setScreen({ name: 'processing', patient })
+  const open = (input: ExtractionInput, reason: AccessReason | 'own' | 'proxy') => {
+    if (!user || !canAccess(user, input.patient.hetu)) return
+    setAudit(log => logAccess(log, { user: user.name, hetu: input.patient.hetu, reason }))
+    setScreen({ name: 'processing', input })
   }
 
   const onExtracted = useCallback(
     (extraction: Extraction) =>
-      setScreen(s => (s.name === 'processing' ? { name: 'results', patient: s.patient, extraction } : s)),
+      setScreen(s => (s.name === 'processing' ? { name: 'results', input: s.input, extraction } : s)),
     [],
   )
 
   const logout = () => {
     setUser(null)
-    setScreen({ name: 'search' })
+    setScreen({ name: 'start' })
   }
 
   return (
@@ -70,13 +72,16 @@ export const App = () => {
       </header>
 
       {!user && <Login onLogin={u => { setUser(u); setSyncedAt(new Date()) }} />}
-      {user && screen.name === 'search' && <PatientSearch onOpen={open} />}
+      {user?.role === 'professional' && screen.name === 'start' && <PatientSearch user={user} onOpen={open} />}
+      {user && user.role !== 'professional' && screen.name === 'start' && (
+        <SelfService user={user} onStart={input => open(input, user.role === 'proxy' ? 'proxy' : 'own')} />
+      )}
       {user && screen.name === 'processing' && (
-        <Processing patient={screen.patient} extractor={mockExtractor} onDone={onExtracted} />
+        <Processing input={screen.input} extractor={mockExtractor} onDone={onExtracted} />
       )}
       {user && screen.name === 'results' && (
-        <Results patient={screen.patient} extraction={screen.extraction} groups={LISTINGS[dataSource]} referrer={user.name}
-          onNewSearch={() => setScreen({ name: 'search' })} />
+        <Results patient={screen.input.patient} extraction={screen.extraction} groups={LISTINGS[dataSource]} user={user}
+          onNewSearch={() => setScreen({ name: 'start' })} />
       )}
       {user && <StatusBar user={user} syncedAt={syncedAt} />}
     </I18n.Provider>

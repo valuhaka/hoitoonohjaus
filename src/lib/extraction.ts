@@ -1,6 +1,7 @@
 import { HASHTAGS, HASHTAG_IDS, type HashtagId } from '../data/hashtags'
-import type { Patient } from '../data/patients'
+import type { Patient, RegisterId } from '../data/patients'
 import { ageAt } from './hetu'
+import { NAVIGATORS, type NavigatorResult } from './navigator'
 
 export type ExtractedTag = { id: HashtagId; evidence: string }
 
@@ -10,9 +11,24 @@ export type ExtractedConstraint = { id: ConstraintId; evidence: string }
 
 export type Extraction = { tags: ExtractedTag[]; constraints: ExtractedConstraint[]; source: string }
 
-// Boundary to the NLP provider. The production implementation calls the
-// Wolters Kluwer Expert AI API with the record text, the fixed HASHTAG_IDS and the constraint ids.
-export type PatientExtractor = (patient: Patient, now: Date) => Promise<Extraction>
+// Exactly the data the user chose to use. Age always comes from the identity code.
+export type ExtractionInput = {
+  patient: Patient
+  registers: RegisterId[]
+  freeText: string
+  navigator: NavigatorResult | null
+}
+
+export const allData = (patient: Patient): ExtractionInput => ({
+  patient, registers: [...new Set(patient.record.map(e => e.register))], freeText: '', navigator: null,
+})
+
+export const selectedEntries = ({ patient, registers }: Pick<ExtractionInput, 'patient' | 'registers'>) =>
+  patient.record.filter(entry => registers.includes(entry.register))
+
+// Boundary to the NLP provider. The production implementation calls the Wolters Kluwer
+// Expert AI API with the selected texts, the fixed HASHTAG_IDS and the constraint ids.
+export type PatientExtractor = (input: ExtractionInput, now: Date) => Promise<Extraction>
 
 const NEGATION = /(^|\s)(ei|eikä|ilman)\s/i
 
@@ -23,8 +39,10 @@ const CONSTRAINT_STEMS: Record<Exclude<ConstraintId, 'older'>, string[]> = {
   lowIncome: ['taloudellinen tilanne tiukka', 'toimeentulotuki', 'pienituloi', 'työttömy'],
 }
 
-const sentences = (patient: Patient): string[] =>
-  patient.record.flatMap(entry => entry.text.split(/(?<=[.!?])\s+/))
+const sentences = (input: ExtractionInput): string[] =>
+  [...selectedEntries(input).map(entry => entry.text), input.freeText]
+    .flatMap(text => text.split(/(?<=[.!?])\s+/))
+    .filter(s => s.trim() !== '')
 
 const findSentence = (all: string[], stems: readonly string[]) =>
   all.find(s => stems.some(stem => s.toLowerCase().includes(stem)))
@@ -38,8 +56,9 @@ const ageTags = (age: number): ExtractedTag[] => {
 }
 
 // Keyword-stem stand-in for the WK Expert AI API, good enough for synthetic demo data
-export const mockExtractor: PatientExtractor = async (patient, now) => {
-  const all = sentences(patient)
+export const mockExtractor: PatientExtractor = async (input, now) => {
+  const { patient, navigator } = input
+  const all = sentences(input)
   const affirmed = all.filter(s => !NEGATION.test(s))
   const age = ageAt(patient.hetu, now)
 
@@ -54,5 +73,14 @@ export const mockExtractor: PatientExtractor = async (patient, now) => {
   })
   const older = age >= 65 ? [{ id: 'older' as const, evidence: `Ikä ${age} v (henkilötunnus)` }] : []
 
-  return { tags: [...textTags, ...ageTags(age)], constraints: [...constraints, ...older], source: 'mock' }
+  const found = new Set(textTags.map(t => t.id))
+  const navigatorTags = (navigator?.tags ?? [])
+    .filter(id => !found.has(id))
+    .map(id => ({ id, evidence: `${NAVIGATORS[navigator!.navigator].name} ${navigator!.code}` }))
+
+  return {
+    tags: [...textTags, ...navigatorTags, ...ageTags(age)],
+    constraints: [...constraints, ...older],
+    source: 'mock',
+  }
 }

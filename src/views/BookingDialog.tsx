@@ -1,5 +1,7 @@
 import { useState } from 'react'
+import { HASHTAGS } from '../data/hashtags'
 import { ADAPTERS } from '../lib/booking'
+import { LUVN_MUNICIPALITIES, type Eligibility } from '../lib/eligibility'
 import type { Match } from '../lib/match'
 import { formatFee, useT } from '../i18n'
 import { distanceText, languagesText, scheduleLine, seatsText } from './format'
@@ -10,6 +12,30 @@ type Status =
   | { kind: 'pending' }
   | { kind: 'done'; reference: string }
   | { kind: 'failed' }
+
+// Lowercase a topic label inside a sentence, but keep acronyms like ADHD
+const inSentence = (label: string) => (/^\p{Lu}\p{Ll}/u.test(label) ? label[0]!.toLowerCase() + label.slice(1) : label)
+
+const Criteria = ({ eligibility: e }: { eligibility: Eligibility }) => {
+  const { t, lang } = useT()
+  const residents = e.municipalities && (
+    e.municipalities === LUVN_MUNICIPALITIES ? t.criteria.residentsLuvn : e.municipalities.join(', ')
+  )
+  return (
+    <section className="criteria">
+      <h3>{t.criteria.title}</h3>
+      <ul>
+        <li>{t.criteria.referral[e.referral]}</li>
+        {(e.minAge !== null || e.maxAge !== null) && <li>{t.criteria.age(e.minAge, e.maxAge)}</li>}
+        {residents && <li>{residents}</li>}
+        {e.excludes.length > 0 && (
+          <li>{t.criteria.excludes}: {e.excludes.map(id => inSentence(HASHTAGS[id][lang])).join(', ')}</li>
+        )}
+        {e.notes.map(note => <li key={note}>{note}</li>)}
+      </ul>
+    </section>
+  )
+}
 
 export const BookingDialog = ({
   match,
@@ -54,6 +80,8 @@ export const BookingDialog = ({
         <dt>{t.booking.seats}</dt><dd>{seatsText(match, lang)}</dd>
         {booking.type !== 'contact' && <><dt>{t.booking.system}</dt><dd>{booking.system}</dd></>}
       </dl>
+
+      <Criteria eligibility={group.eligibility} />
 
       {(contact.name || contact.phone || contact.email) && (
         <section className="contact">

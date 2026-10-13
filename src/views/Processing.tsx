@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import type { Patient } from '../data/patients'
-import type { Extraction, PatientExtractor } from '../lib/extraction'
+import type { Extraction, ExtractionInput, PatientExtractor } from '../lib/extraction'
 import { animateWaves } from '../lib/waves'
 import { useT } from '../i18n'
 import { PatientBanner } from './PatientBanner'
@@ -19,11 +18,11 @@ const Waves = () => {
 }
 
 export const Processing = ({
-  patient,
+  input,
   extractor,
   onDone,
 }: {
-  patient: Patient
+  input: ExtractionInput
   extractor: PatientExtractor
   onDone: (extraction: Extraction) => void
 }) => {
@@ -34,7 +33,7 @@ export const Processing = ({
   useEffect(() => {
     let cancelled = false
     const run = async () => {
-      const [extraction] = await Promise.all([extractor(patient, new Date()), wait(EXTRACT_MIN_MS)])
+      const [extraction] = await Promise.all([extractor(input, new Date()), wait(EXTRACT_MIN_MS)])
       if (cancelled) return
       setStep(1)
       setTick(0)
@@ -43,7 +42,7 @@ export const Processing = ({
     }
     run()
     return () => { cancelled = true }
-  }, [patient, extractor, onDone])
+  }, [input, extractor, onDone])
 
   useEffect(() => {
     const id = setInterval(() => setTick(n => n + 1), PHRASE_MS)
@@ -56,7 +55,7 @@ export const Processing = ({
 
   return (
     <main className="content">
-      <PatientBanner patient={patient} />
+      <PatientBanner patient={input.patient} />
       <section className="processing">
         <Waves />
         <ol className="steps" aria-live="polite">

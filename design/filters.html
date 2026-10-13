@@ -17,14 +17,20 @@
       Ajankohta
       <select><option>Mikä tahansa</option><option selected>Päivällä</option><option>Iltaisin</option></select>
     </label>
-    <label class="suggested" title="Ehdotettu potilastietojen perusteella: Taloudellinen tilanne tiukka.">
-      Hinta
-      <select><option>Kaikki</option><option>Maksuton</option><option selected>Enintään 10 €</option></select>
-    </label>
-    <label class="suggested" title="Ehdotettu potilastietojen perusteella: Liikkuu linja-autolla, oma auto puuttuu.">
-      Etäisyys
-      <select><option>Kaikki</option><option>Enintään 10 km</option><option selected>Enintään 25 km</option><option>Enintään 50 km</option></select>
-    </label>
+    <div role="group" aria-label="Hinta" class="range-filter suggested" title="Ehdotettu potilastietojen perusteella: Taloudellinen tilanne tiukka, eläke pieni.">
+      <span class="range-label">Hinta<output>0–10 €</output></span>
+      <div class="range" style="--lo: 0%; --hi: 33.3%">
+        <input type="range" min="0" max="30" step="1" value="0" aria-label="Hinta: Vähintään" />
+        <input type="range" min="0" max="30" step="1" value="10" aria-label="Hinta: Enintään" />
+      </div>
+    </div>
+    <div role="group" aria-label="Etäisyys" class="range-filter">
+      <span class="range-label">Etäisyys<output>Kaikki</output></span>
+      <div class="range" style="--lo: 0%; --hi: 100%">
+        <input type="range" min="0" max="100" step="5" value="0" aria-label="Etäisyys: Vähintään" />
+        <input type="range" min="0" max="100" step="5" value="100" aria-label="Etäisyys: Enintään" />
+      </div>
+    </div>
     <button class="secondary">Tyhjennä suodattimet</button>
   </div>
 </main>

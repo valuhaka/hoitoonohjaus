@@ -8,7 +8,7 @@
 </head>
 <body>
 <div class="modal-backdrop">
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="access-title">
+  <div class="modal wide" role="dialog" aria-modal="true" aria-labelledby="access-title">
     <header class="titlebar">
       <h2 id="access-title">Avaa asiakkaan tiedot</h2>
       <button class="titlebar-close" aria-label="Sulje">×</button>
@@ -19,15 +19,54 @@
       <dt>Nimi</dt><dd>Virtanen, Aino Maria</dd>
       <dt>Henkilötunnus</dt><dd class="mono">120358-912J</dd>
     </dl>
+    <label class="check acknowledge">
+      <input type="checkbox" checked />
+      <span>Olen tietoinen, että tietojen käyttö kirjataan lokiin (asiakastietolaki 703/2023).</span>
+    </label>
     <label>
       Käyttöperuste
       <select>
+        <option disabled>Valitse peruste</option>
         <option>Hoitosuhde</option>
         <option selected>Hoitoonohjaus</option>
         <option>Konsultaatio</option>
       </select>
     </label>
-    <p class="hint">Tietojen käyttö kirjataan lokiin (asiakastietolaki 703/2023).</p>
+    <fieldset class="sources">
+      <legend>Haussa käytettävät tiedot</legend>
+      <div class="source">
+        <label class="check"><input type="checkbox" checked /><span><strong>Potilastiedot</strong></span></label>
+        <div class="sub-checks">
+          <label class="check"><input type="checkbox" checked /><span>Perusterveydenhuolto <small class="hint">2 merkintää</small></span></label>
+          <label class="check"><input type="checkbox" checked /><span>Sosiaalihuolto <small class="hint">1 merkintä</small></span></label>
+          <label class="check"><input type="checkbox" /><span>Kanta: muut palvelunantajat <small class="hint">1 merkintä · vaatii potilaan suostumuksen</small></span></label>
+        </div>
+      </div>
+      <div class="source chat">
+        <label for="text"><strong>Oma kuvaus</strong></label>
+        <p class="chat-prompt">Kuvaa potilaan tilanne omin sanoin.</p>
+        <textarea id="text" class="chat-input" rows="3">Potilas on kertonut, että nukahtaminen on vaikeaa.</textarea>
+      </div>
+      <div class="source">
+        <label for="code"><strong>Navigaattorikoodi</strong></label>
+        <div class="navigator-row">
+          <select aria-label="Navigaattorikoodi"><option selected>Terapianavigaattori</option><option>Interventionavigaattori</option></select>
+          <input id="code" class="mono" value="4821 3097" />
+        </div>
+        <p class="hint">Kahdeksannumeroinen tuloskoodi, voimassa kuukauden · <a href="https://www.terapianavigaattori.fi">Terapianavigaattori</a> · <a href="https://www.mielenterveystalo.fi">Interventionavigaattori</a></p>
+        <p class="ok">Koodi löytyi: 3 aihetta</p>
+      </div>
+    </fieldset>
+    <div class="summary">
+      <strong>Haku käyttää</strong>
+      <ul>
+        <li>ikää ja kotiosoitetta väestötiedoista</li>
+        <li>3 merkintää 2 rekisteristä</li>
+        <li>omaa kuvausta</li>
+        <li>Terapianavigaattori-tulosta</li>
+      </ul>
+      <p class="hint">Tietoja käytetään vain sopivien ryhmien hakemiseen. Psyykkeri ei tallenna niitä.</p>
+    </div>
     <div class="actions">
       <button class="secondary">Peruuta</button>
       <button class="primary">Avaa ja hae sopivat ryhmät</button>

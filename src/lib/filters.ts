@@ -4,15 +4,25 @@ import type { Match } from './match'
 
 export type TimeOfDay = 'any' | 'daytime' | 'evening'
 
+// A min–max range as set by a two-handle slider; max null = no upper limit
+export type Range = { min: number; max: number | null }
+
 export type Filters = {
   startsWithinDays: number | null
   timeOfDay: TimeOfDay
-  // 0 = free only
-  maxFee: number | null
-  maxDistanceKm: number | null
+  // Euros per session
+  fee: Range
+  distanceKm: Range
 }
 
-export const NO_FILTERS: Filters = { startsWithinDays: null, timeOfDay: 'any', maxFee: null, maxDistanceKm: null }
+// Slider scales; the top of each scale means "no upper limit"
+export const FEE_SCALE = { max: 30, step: 1 }
+export const DISTANCE_SCALE = { max: 100, step: 5 }
+
+const ANY: Range = { min: 0, max: null }
+export const NO_FILTERS: Filters = { startsWithinDays: null, timeOfDay: 'any', fee: ANY, distanceKm: ANY }
+
+export const inRange = (value: number, { min, max }: Range) => value >= min && (max === null || value <= max)
 
 // Groups starting at or after this hour count as evening groups
 const EVENING_FROM_HOUR = 16
@@ -36,16 +46,16 @@ const atTimeOfDay = (startTime: string | null, timeOfDay: TimeOfDay) => {
 }
 
 // Remote groups have no distance and always pass the distance filter
-const withinDistance = (distanceKm: number | null, max: number | null) =>
-  max === null || distanceKm === null || distanceKm <= max
+const withinDistance = (distanceKm: number | null, range: Range) =>
+  distanceKm === null || inRange(distanceKm, range)
 
 export const applyFilters = (matches: Match[], filters: Filters, now: Date): Match[] =>
   matches.filter(
     ({ group, distanceKm }) =>
       startsInTime(group, filters.startsWithinDays, now) &&
       atTimeOfDay(group.startTime, filters.timeOfDay) &&
-      (filters.maxFee === null || group.fee === null || group.fee <= filters.maxFee) &&
-      withinDistance(distanceKm, filters.maxDistanceKm),
+      (group.fee === null || inRange(group.fee, filters.fee)) &&
+      withinDistance(distanceKm, filters.distanceKm),
   )
 
 export type FilterGuess = { filters: Filters; reasons: Partial<Record<keyof Filters, string>> }
@@ -64,14 +74,14 @@ export const guessFilters = (constraints: ExtractedConstraint[]): FilterGuess =>
   return {
     filters: {
       ...NO_FILTERS,
-      maxDistanceKm: mobility ? GUESSED_MAX_DISTANCE_KM : null,
+      distanceKm: { min: 0, max: mobility ? GUESSED_MAX_DISTANCE_KM : null },
       timeOfDay: busyDays ? 'evening' : timeCue ? 'daytime' : 'any',
-      maxFee: lowIncome ? GUESSED_MAX_FEE : null,
+      fee: { min: 0, max: lowIncome ? GUESSED_MAX_FEE : null },
     },
     reasons: {
-      ...(mobility && { maxDistanceKm: mobility.evidence }),
+      ...(mobility && { distanceKm: mobility.evidence }),
       ...(timeCue && { timeOfDay: timeCue.evidence }),
-      ...(lowIncome && { maxFee: lowIncome.evidence }),
+      ...(lowIncome && { fee: lowIncome.evidence }),
     },
   }
 }

@@ -5,8 +5,12 @@ import { REAL_GROUPS } from '../data/listings'
 import { PATIENTS } from '../data/patients'
 import { SOURCE_URLS, SOURCES_WITHOUT_LISTINGS, TREATMENTS } from '../data/treatments'
 import { ADAPTERS } from './booking'
-import { mockExtractor } from './extraction'
+import { authenticate, canAccess, ownPatients } from './auth'
+import { isEligible } from './eligibility'
+import { allData, mockExtractor } from './extraction'
 import { applyFilters, guessFilters, NO_FILTERS } from './filters'
+import { lookupNavigatorCode } from './navigator'
+import { searchPatients } from './registry'
 import { ageAt, isValidHetu } from './hetu'
 import { fitScore, idfWeights, rankGroups } from './match'
 
@@ -28,11 +32,11 @@ describe('hetu', () => {
 
 describe('mock extraction', () => {
   it('finds loneliness, grief and age for the widowed patient', async () => {
-    const { tags } = await mockExtractor(PATIENTS[0]!, NOW)
+    const { tags } = await mockExtractor(allData(PATIENTS[0]!), NOW)
     expect(tags.map(t => t.id)).toEqual(expect.arrayContaining(['yksinaisyys', 'suru', 'masennus', 'ikaantyneet']))
   })
   it('ignores negated sentences', async () => {
-    const { tags } = await mockExtractor(PATIENTS[1]!, NOW)
+    const { tags } = await mockExtractor(allData(PATIENTS[1]!), NOW)
     expect(tags.map(t => t.id)).not.toContain('paihteet')
   })
 })
@@ -61,12 +65,17 @@ describe('filters', () => {
     expect(applyFilters(all, NO_FILTERS, NOW)).toHaveLength(all.length)
   })
   it('filters by distance, time of day and fee', () => {
-    const filtered = applyFilters(all, { ...NO_FILTERS, maxDistanceKm: 25, timeOfDay: 'daytime', maxFee: 0 }, NOW)
+    const filtered = applyFilters(all, { ...NO_FILTERS, distanceKm: { min: 0, max: 25 }, timeOfDay: 'daytime', fee: { min: 0, max: 0 } }, NOW)
     expect(filtered.map(m => m.group.id)).toEqual(['g01'])
   })
   it('lets remote groups through the distance filter', () => {
     const sleep = rankGroups(['uni'], home, GROUPS)
-    expect(applyFilters(sleep, { ...NO_FILTERS, maxDistanceKm: 10 }, NOW).map(m => m.group.id)).toContain('g04')
+    expect(applyFilters(sleep, { ...NO_FILTERS, distanceKm: { min: 0, max: 10 } }, NOW).map(m => m.group.id)).toContain('g04')
+  })
+  it('applies a minimum distance', () => {
+    const far = applyFilters(all, { ...NO_FILTERS, distanceKm: { min: 20, max: null } }, NOW)
+    expect(far.map(m => m.group.id)).not.toContain('g01')
+    expect(far.every(m => m.distanceKm === null || m.distanceKm >= 20)).toBe(true)
   })
   it('filters by start date', () => {
     const within = applyFilters(all, { ...NO_FILTERS, startsWithinDays: 14 }, NOW)
@@ -76,17 +85,83 @@ describe('filters', () => {
 
 describe('filter guessing', () => {
   it('suggests nearby daytime groups for an older patient without a car on a tight budget', async () => {
-    const { constraints } = await mockExtractor(PATIENTS[0]!, NOW)
+    const { constraints } = await mockExtractor(allData(PATIENTS[0]!), NOW)
     const { filters, reasons } = guessFilters(constraints)
-    expect(filters).toMatchObject({ maxDistanceKm: 25, timeOfDay: 'daytime', maxFee: 10 })
-    expect(reasons.maxDistanceKm).toContain('oma auto puuttuu')
+    expect(filters).toMatchObject({ distanceKm: { min: 0, max: 25 }, timeOfDay: 'daytime', fee: { min: 0, max: 10 } })
+    expect(reasons.distanceKm).toContain('oma auto puuttuu')
   })
   it('suggests evening groups for a working patient', async () => {
-    const { constraints } = await mockExtractor(PATIENTS[1]!, NOW)
+    const { constraints } = await mockExtractor(allData(PATIENTS[1]!), NOW)
     expect(guessFilters(constraints).filters.timeOfDay).toBe('evening')
   })
   it('suggests nothing without constraints', () => {
     expect(guessFilters([])).toEqual({ filters: NO_FILTERS, reasons: {} })
+  })
+})
+
+describe('inclusion criteria', () => {
+  const emma = PATIENTS.find(p => p.hetu === '140311A962A')!
+  const g = (id: string) => GROUPS.find(x => x.id === id)!.eligibility
+
+  it('checks age, residence and excluded topics', () => {
+    expect(isEligible(g('g01'), { age: 15, municipality: 'Karkkila', tags: [] })).toBe(false)
+    expect(isEligible(g('g15'), { age: 15, municipality: 'Karkkila', tags: [] })).toBe(true)
+    expect(isEligible(g('g15'), { age: 15, municipality: 'Helsinki', tags: [] })).toBe(false)
+    expect(isEligible(g('g08'), { age: 40, municipality: 'Lohja', tags: ['paihteet'] })).toBe(false)
+  })
+  it('leaves ineligible groups out of the ranking', async () => {
+    const { tags } = await mockExtractor(allData(emma), NOW)
+    const ranked = rankGroups(tags.map(t => t.id), emma.homeCoords, GROUPS, { age: 15, municipality: 'Karkkila' })
+    expect(ranked.map(m => m.group.id)).toEqual(['g15'])
+  })
+  it('gives every listing criteria', () => {
+    GROUPS.forEach(x => expect(x.eligibility, x.id).toBeDefined())
+  })
+})
+
+describe('data selection', () => {
+  const aino = PATIENTS[0]!
+
+  it('uses only the selected registers', async () => {
+    const { constraints } = await mockExtractor({ ...allData(aino), registers: ['primary'] }, NOW)
+    expect(constraints.map(c => c.id)).not.toContain('mobility')
+  })
+  it('reads the free text', async () => {
+    const input = { ...allData(aino), registers: [], freeText: 'Potilas on kärsinyt unettomuudesta.' }
+    const { tags } = await mockExtractor(input, NOW)
+    expect(tags.map(t => t.id)).toContain('uni')
+  })
+  it('adds navigator topics with the code as evidence', async () => {
+    const lookup = lookupNavigatorCode('terapianavigaattori', '4821 3097')
+    expect(lookup.kind).toBe('found')
+    if (lookup.kind !== 'found') return
+    const { tags } = await mockExtractor({ ...allData(aino), registers: [], navigator: lookup.result }, NOW)
+    expect(tags.find(t => t.id === 'uni')?.evidence).toBe('Terapianavigaattori 48213097')
+  })
+  it('rejects malformed and unknown navigator codes', () => {
+    expect(lookupNavigatorCode('terapianavigaattori', '1234').kind).toBe('invalid')
+    expect(lookupNavigatorCode('terapianavigaattori', '51730462').kind).toBe('notFound')
+  })
+})
+
+describe('access by role', () => {
+  const patient = authenticate('patient', 'aino', 'demo')!
+  const proxy = authenticate('proxy', 'jari', 'demo')!
+  const professional = authenticate('professional', 'demo', 'demo')!
+
+  it('keeps patients and proxies out of the register search', async () => {
+    expect(await searchPatients('Virtanen Aino', patient)).toEqual({ kind: 'forbidden' })
+    expect(await searchPatients('Virtanen Aino', proxy)).toEqual({ kind: 'forbidden' })
+    expect(await searchPatients('Virtanen Aino', professional)).toMatchObject({ kind: 'found' })
+  })
+  it('limits patients to themselves and proxies to the persons they act for', () => {
+    expect(ownPatients(patient).map(p => p.hetu)).toEqual(['120358-912J'])
+    expect(ownPatients(proxy).map(p => p.hetu)).toEqual(['140311A962A'])
+    expect(canAccess(patient, '040791-934U')).toBe(false)
+    expect(canAccess(proxy, '230679-921S')).toBe(false)
+  })
+  it('rejects a wrong password', () => {
+    expect(authenticate('patient', 'aino', 'x')).toBeNull()
   })
 })
 
@@ -168,7 +243,7 @@ describe('real listings in matching', () => {
     const ranked = rankGroups(['masennus', 'ahdistus', 'paihteet'], home, REAL_GROUPS)
     const luvn = ranked.find(m => m.group.serviceId === 'luvn-mtp')!
     expect(luvn.group.fee).toBeNull()
-    const strict = { ...NO_FILTERS, maxFee: 0, timeOfDay: 'evening' as const, startsWithinDays: 14 }
+    const strict = { ...NO_FILTERS, fee: { min: 0, max: 0 }, timeOfDay: 'evening' as const, startsWithinDays: 14 }
     expect(applyFilters([luvn], strict, NOW)).toHaveLength(1)
   })
   it('keeps groups announced for later out of the start filter', () => {
@@ -176,6 +251,12 @@ describe('real listings in matching', () => {
     const later = ranked.filter(m => m.group.status === 'applyLater')
     expect(later.length).toBeGreaterThan(0)
     expect(applyFilters(later, { ...NO_FILTERS, startsWithinDays: 31 }, NOW)).toHaveLength(0)
+  })
+  it('never rules a patient out on criteria the sources do not publish', () => {
+    const child = { age: 15, municipality: 'Karkkila' }
+    expect(rankGroups(['ahdistus'], home, REAL_GROUPS, child))
+      .toHaveLength(rankGroups(['ahdistus'], home, REAL_GROUPS).length)
+    REAL_GROUPS.forEach(g => expect(['none', 'required', 'unknown']).toContain(g.eligibility.referral))
   })
   it('links every real listing to the organiser', () => {
     REAL_GROUPS.forEach(g => expect(g.booking.type).toBe('external'))

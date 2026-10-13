@@ -1,27 +1,77 @@
 import { useState, type FormEvent } from 'react'
 import type { Patient } from '../data/patients'
+import type { User } from '../lib/auth'
+import type { ExtractionInput } from '../lib/extraction'
 import { searchPatients, type AccessReason, type SearchResult } from '../lib/registry'
 import { useT } from '../i18n'
+import { DataSources } from './DataSources'
 import { Modal } from './Modal'
 
 const REASONS: AccessReason[] = ['careRelationship', 'referral', 'consultation']
 
+// Opening a record takes three explicit steps: acknowledge logging, give the basis, choose the data
+const AccessDialog = ({
+  patient,
+  onOpen,
+  onClose,
+}: {
+  patient: Patient
+  onOpen: (input: ExtractionInput, reason: AccessReason) => void
+  onClose: () => void
+}) => {
+  const { t } = useT()
+  const [acknowledged, setAcknowledged] = useState(false)
+  const [reason, setReason] = useState<AccessReason | ''>('')
+
+  return (
+    <Modal title={t.confirmTitle} onClose={onClose} wide>
+      <p>{t.confirmIdentity}</p>
+      <dl className="identity">
+        <dt>{t.colName}</dt><dd>{patient.lastName}, {patient.firstNames}</dd>
+        <dt>{t.colHetu}</dt><dd className="mono">{patient.hetu}</dd>
+      </dl>
+      <label className="check acknowledge">
+        <input type="checkbox" checked={acknowledged} onChange={e => setAcknowledged(e.target.checked)} />
+        <span>{t.logAck}</span>
+      </label>
+      <label className={acknowledged ? undefined : 'disabled'}>
+        {t.reasonLabel}
+        <select value={reason} disabled={!acknowledged} onChange={e => setReason(e.target.value as AccessReason)}>
+          <option value="" disabled>{t.reasonPlaceholder}</option>
+          {REASONS.map(r => <option key={r} value={r}>{t.reasons[r]}</option>)}
+        </select>
+      </label>
+      <DataSources patient={patient} role="professional" disabled={!acknowledged || reason === ''}
+        actions={input => (
+          <div className="actions">
+            <button className="secondary" onClick={onClose}>{t.cancel}</button>
+            <button className="primary" disabled={!input || reason === ''}
+              onClick={() => input && reason !== '' && onOpen(input, reason)}>
+              {t.openAndMatch}
+            </button>
+          </div>
+        )} />
+    </Modal>
+  )
+}
+
 export const PatientSearch = ({
+  user,
   onOpen,
 }: {
-  onOpen: (patient: Patient, reason: AccessReason) => void
+  user: User
+  onOpen: (input: ExtractionInput, reason: AccessReason) => void
 }) => {
   const { t } = useT()
   const [query, setQuery] = useState('')
   const [result, setResult] = useState<SearchResult | null>(null)
   const [loading, setLoading] = useState(false)
   const [selected, setSelected] = useState<Patient | null>(null)
-  const [reason, setReason] = useState<AccessReason>('referral')
 
   const submit = async (e: FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    setResult(await searchPatients(query))
+    setResult(await searchPatients(query, user))
     setLoading(false)
   }
 
@@ -66,24 +116,7 @@ export const PatientSearch = ({
       </section>
 
       {selected && (
-        <Modal title={t.confirmTitle} onClose={() => setSelected(null)}>
-          <p>{t.confirmIdentity}</p>
-          <dl className="identity">
-            <dt>{t.colName}</dt><dd>{selected.lastName}, {selected.firstNames}</dd>
-            <dt>{t.colHetu}</dt><dd className="mono">{selected.hetu}</dd>
-          </dl>
-          <label>
-            {t.reasonLabel}
-            <select value={reason} onChange={e => setReason(e.target.value as AccessReason)}>
-              {REASONS.map(r => <option key={r} value={r}>{t.reasons[r]}</option>)}
-            </select>
-          </label>
-          <p className="hint">{t.auditNotice}</p>
-          <div className="actions">
-            <button className="secondary" onClick={() => setSelected(null)}>{t.cancel}</button>
-            <button className="primary" onClick={() => onOpen(selected, reason)}>{t.openAndMatch}</button>
-          </div>
-        </Modal>
+        <AccessDialog key={selected.hetu} patient={selected} onOpen={onOpen} onClose={() => setSelected(null)} />
       )}
     </main>
   )
