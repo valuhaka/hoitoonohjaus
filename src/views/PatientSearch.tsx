@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import type { Patient } from '../data/patients'
 import { searchPatients, type AccessReason, type SearchResult } from '../lib/registry'
 import { useT } from '../i18n'
+import { Modal } from './Modal'
 
 const REASONS: AccessReason[] = ['careRelationship', 'referral', 'consultation']
 
@@ -65,27 +66,25 @@ export const PatientSearch = ({
       </section>
 
       {selected && (
-        <div className="modal-backdrop" onClick={() => setSelected(null)}>
-          <div className="panel modal" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
-            <h2>{t.confirmTitle}</h2>
-            <p>{t.confirmIdentity}</p>
-            <dl className="identity">
-              <dt>{t.colName}</dt><dd>{selected.lastName}, {selected.firstNames}</dd>
-              <dt>{t.colHetu}</dt><dd className="mono">{selected.hetu}</dd>
-            </dl>
-            <label>
-              {t.reasonLabel}
-              <select value={reason} onChange={e => setReason(e.target.value as AccessReason)}>
-                {REASONS.map(r => <option key={r} value={r}>{t.reasons[r]}</option>)}
-              </select>
-            </label>
-            <p className="hint">🔒 {t.auditNotice}</p>
-            <div className="actions">
-              <button className="secondary" onClick={() => setSelected(null)}>{t.cancel}</button>
-              <button className="primary" onClick={() => onOpen(selected, reason)}>{t.openAndMatch}</button>
-            </div>
+        <Modal onClose={() => setSelected(null)} labelledBy="access-title">
+          <h2 id="access-title">{t.confirmTitle}</h2>
+          <p>{t.confirmIdentity}</p>
+          <dl className="identity">
+            <dt>{t.colName}</dt><dd>{selected.lastName}, {selected.firstNames}</dd>
+            <dt>{t.colHetu}</dt><dd className="mono">{selected.hetu}</dd>
+          </dl>
+          <label>
+            {t.reasonLabel}
+            <select value={reason} onChange={e => setReason(e.target.value as AccessReason)}>
+              {REASONS.map(r => <option key={r} value={r}>{t.reasons[r]}</option>)}
+            </select>
+          </label>
+          <p className="hint">{t.auditNotice}</p>
+          <div className="actions">
+            <button className="secondary" onClick={() => setSelected(null)}>{t.cancel}</button>
+            <button className="primary" onClick={() => onOpen(selected, reason)}>{t.openAndMatch}</button>
           </div>
-        </div>
+        </Modal>
       )}
     </main>
   )

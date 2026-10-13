@@ -1,8 +1,8 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { Patient } from './data/patients'
 import { mockExtractor, type Extraction } from './lib/extraction'
 import { logAccess, type AccessReason, type AuditEntry } from './lib/registry'
-import { DICTS, I18n, type Lang } from './i18n'
+import { DICTS, I18n, LANGS, type Lang } from './i18n'
 import { Login, type User } from './views/Login'
 import { PatientSearch } from './views/PatientSearch'
 import { Processing } from './views/Processing'
@@ -19,6 +19,8 @@ export const App = () => {
   const [screen, setScreen] = useState<Screen>({ name: 'search' })
   const [, setAudit] = useState<AuditEntry[]>([])
   const t = DICTS[lang]
+
+  useEffect(() => { document.documentElement.lang = lang }, [lang])
 
   const open = (patient: Patient, reason: AccessReason) => {
     setAudit(log => logAccess(log, { user: user?.name ?? '', hetu: patient.hetu, reason }))
@@ -40,7 +42,6 @@ export const App = () => {
     <I18n.Provider value={{ t, lang }}>
       <header className="topbar">
         <div className="brand">
-          <span className="logo">◆</span>
           <div>
             <strong>{t.appName}</strong>
             <small>{t.org}</small>
@@ -48,9 +49,14 @@ export const App = () => {
           <span className="badge demo">{t.demoBadge}</span>
         </div>
         <div className="topbar-right">
-          <button className="link" onClick={() => setLang(lang === 'fi' ? 'en' : 'fi')}>
-            {lang === 'fi' ? 'EN' : 'FI'}
-          </button>
+          <div className="lang-switch" role="group" aria-label="Kieli / Språk / Language">
+            {LANGS.map(l => (
+              <button key={l} className={l === lang ? 'segment active' : 'segment'}
+                aria-pressed={l === lang} onClick={() => setLang(l)}>
+                {l.toUpperCase()}
+              </button>
+            ))}
+          </div>
           {user && (
             <>
               <span className="user">{user.name} · {user.title}</span>
@@ -66,7 +72,7 @@ export const App = () => {
         <Processing patient={screen.patient} extractor={mockExtractor} onDone={onExtracted} />
       )}
       {user && screen.name === 'results' && (
-        <Results patient={screen.patient} extraction={screen.extraction}
+        <Results patient={screen.patient} extraction={screen.extraction} referrer={user.name}
           onNewSearch={() => setScreen({ name: 'search' })} />
       )}
     </I18n.Provider>

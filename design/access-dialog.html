@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Psyykkeri – Access dialog</title>
+  <link rel="stylesheet" href="../src/styles.css" />
+</head>
+<body>
+<div class="modal-backdrop">
+  <div class="panel modal" role="dialog" aria-modal="true">
+    <h2>Avaa asiakkaan tiedot</h2>
+    <p>Varmista asiakkaan henkilöllisyys ennen tietojen avaamista.</p>
+    <dl class="identity">
+      <dt>Nimi</dt><dd>Virtanen, Aino Maria</dd>
+      <dt>Henkilötunnus</dt><dd class="mono">120358-912J</dd>
+    </dl>
+    <label>
+      Käyttöperuste
+      <select>
+        <option>Hoitosuhde</option>
+        <option selected>Hoitoonohjaus</option>
+        <option>Konsultaatio</option>
+      </select>
+    </label>
+    <p class="hint">Tietojen käyttö kirjataan lokiin (asiakastietolaki 703/2023).</p>
+    <div class="actions">
+      <button class="secondary">Peruuta</button>
+      <button class="primary">Avaa ja hae sopivat ryhmät</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>

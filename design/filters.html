@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Psyykkeri – Filters</title>
+  <link rel="stylesheet" href="../src/styles.css" />
+</head>
+<body>
+<main class="content">
+  <div class="filters">
+    <label>
+      Alkaa
+      <select><option selected>Milloin tahansa</option><option>2 viikon sisällä</option><option>Kuukauden sisällä</option></select>
+    </label>
+    <label class="suggested" title="Ehdotettu potilastietojen perusteella: Ikä 68 v (henkilötunnus)">
+      Ajankohta
+      <select><option>Mikä tahansa</option><option selected>Päivällä</option><option>Iltaisin</option></select>
+    </label>
+    <label class="suggested" title="Ehdotettu potilastietojen perusteella: Taloudellinen tilanne tiukka.">
+      Hinta
+      <select><option>Kaikki</option><option>Maksuton</option><option selected>Enintään 10 €</option></select>
+    </label>
+    <label class="suggested" title="Ehdotettu potilastietojen perusteella: Liikkuu linja-autolla, oma auto puuttuu.">
+      Etäisyys
+      <select><option>Kaikki</option><option>Enintään 10 km</option><option selected>Enintään 25 km</option><option>Enintään 50 km</option></select>
+    </label>
+    <button class="secondary">Tyhjennä suodattimet</button>
+  </div>
+</main>
+</body>
+</html>

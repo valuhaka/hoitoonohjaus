@@ -4,7 +4,7 @@ import { useT } from '../i18n'
 export type User = { name: string; title: string }
 
 // Demo accounts only; production uses the organisation's identity provider
-const DEMO_USER: User = { name: 'Laura Laine', title: 'Psykologi' }
+const DEMO_USER: User = { name: 'Iiris Ainias', title: 'Psykologi' }
 
 export const Login = ({ onLogin }: { onLogin: (user: User) => void }) => {
   const { t } = useT()
@@ -29,9 +29,8 @@ export const Login = ({ onLogin }: { onLogin: (user: User) => void }) => {
       <section className="panel login">
         <h1>{t.loginTitle}</h1>
         <button className="primary wide" onClick={cardLogin} disabled={cardPending}>
-          {cardPending ? <span className="spinner small" /> : '🪪'} {t.loginCard}
+          {cardPending && <span className="spinner small" />} {t.loginCard}
         </button>
-        <p className="hint">{t.loginCardHint}</p>
         <div className="divider">{t.loginOr}</div>
         <form onSubmit={submit}>
           <label>

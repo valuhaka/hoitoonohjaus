@@ -1,0 +1,98 @@
+# Psyykkeri style guide
+
+Single source of styling: `src/styles.css`. The React app imports it, and the static component files in `design/` link to it. Do not add per-file styles; add or change rules in `src/styles.css` and update this guide in the same change.
+
+## Brand
+
+- **Name:** Psyykkeri. The name is the same in every UI language.
+- **Font:** [Cabin](https://fonts.google.com/specimen/Cabin), weights 400/500/600/700, loaded via `@import` at the top of `src/styles.css`. Fallback: `system-ui`.
+- **Wordmark:** "Psyykkeri" set in Cabin 700, `--green-dark`. No logo mark yet.
+
+## Colour
+
+| Token | Value | Use |
+|---|---|---|
+| `--green-light` | `#89CABC` | Rank squares, tag borders, hover borders, done steps and phrases on dark green |
+| `--green` | `#008D70` | Accent lines (top bar, card left edge, dialog top), focus rings, active map pin, primary-button hover |
+| `--green-dark` | `#015742` | Primary buttons, patient banner, processing panel, map pins, wordmark, all green **text** |
+| `--tint` | `#E8F5F1` | Light backgrounds: matched tags, suggested filters, identity box, contact box, table row hover |
+| `--bg` / `--surface` | `#F5F8F7` / `#FFFFFF` | Page / panels |
+| `--text` / `--muted` | `#1A2A26` / `#52645F` | Body text / secondary text |
+| `--border` | `#D3E2DD` | All 1px borders |
+| `--danger` / `--danger-bg` | `#B42318` / `#FDECEA` | Errors, non-disclosure (turvakielto), full groups |
+| `--warning` / `--warning-bg` | `#7A5600` / `#FFF4D6` | Demo badge only |
+
+**Contrast rule:** `#008D70` on white is about 4.2:1, which fails WCAG AA for normal-size text. Use it for lines, fills and large or decorative elements only. Green text and white-on-green buttons use `#015742` (about 8.6:1). `#015742` on `#89CABC` is about 4.6:1, which is fine for the bold rank number.
+
+## Shape and layout
+
+- **Boxes are rectangular:** `border-radius: 0` globally. The only exception is the small loading spinner inside buttons.
+- **Buttons have a straight left edge and a slanted right edge:** `|Varaa paikka/`. The slant width is `--slant` (0.55rem).
+  - The shape is drawn by two clipped pseudo-elements (`::before` for the border, `::after` for the fill) that follow `--shape`. Buttons set colours through `--btn-bg`, `--btn-border` and `--btn-fg`, never through `background` directly.
+  - **Joined groups** (`.lang-switch`): the first segment is the same trapezoid, and each following segment is a parallelogram nested into the previous slant: `|FI/ /SV/ /EN/`.
+  - **Text-only buttons** (`.link`, `.tag-remove`) have no shape.
+  - Links that act as buttons use `class="button primary"`.
+- Panels: white, 1px `--border`, 1.5rem padding.
+- Accent edges instead of shadows: 3px `--green` bottom border on the top bar and top border on dialogs, 4px `--green` left border on group cards. The active (hovered or map-selected) card gets a `--green-light` outline.
+- Content column max width 960px (`.content`). The results page uses `.content.wide` (1280px) for cards plus map. 1rem side gutter.
+- Spacing: cards are 1.5rem apart with 1.5rem padding.
+
+## Content rules
+
+- **No emojis or pictograms** in the UI. Use text labels.
+- **No hashtag notation.** Topics are shown as plain words with an initial capital (Yksinäisyys, Krooninen kipu). The `#` ids exist only in data and the extraction prompt.
+- **No explanatory subtitles** that repeat what the screen already shows (result counts, "update instantly" hints, data source lines, eyebrow labels above dialog titles). Keep notices with legal or safety meaning (the access log notice, identity confirmation).
+- **Distances:** number and unit only (`17 km`). Remote groups say "Etäryhmä".
+- **Languages:** Finnish (default), Swedish, English. All strings live in `src/i18n.ts`; dates, times and fees are formatted per locale (`fi-FI`, `sv-FI`, `en-GB`). Group names and methods are listing data and stay in the language the organiser wrote them in.
+- **Explanations go in tooltips:** extracted topics and suggested filters show their evidence sentence in a `title` tooltip, not as visible text.
+
+## Screens and components
+
+### Processing
+
+A dark green panel (`.processing`) with animated white strings (`.waves`, drawn by `src/lib/waves.ts`), the two main steps, and a rotating process phrase (`.phrase`, a new one every 650 ms, with a fade-in). Phrases are per step and per language in `i18n.ts` (`phrases`). With `prefers-reduced-motion`, the strings are drawn once and phrases appear without animation. Only the steps are announced to screen readers.
+
+### Filters
+
+`.filters` bar above the results: start, time of day, cost, distance. Filters guessed from the patient record (`guessFilters` in `src/lib/filters.ts`) are marked `.suggested` (green label, tinted select) while they keep the guessed value; the tooltip names the evidence. "Clear filters" appears only when any filter is active.
+
+### Map
+
+Leaflet with CARTO Positron tiles (OpenStreetMap data), sticky to the right of the cards (`.results-layout`, `.map-panel`). Below 900px wide, the map moves above the cards at 300px tall.
+- Pins (`.map-pin`) are dark green squares carrying the card's rank. Full groups are grey; the active pin is `--green`, enlarged, with a `--green-light` outline.
+- Home (`.map-home`) is a white box with a dark green border. The distance filter is drawn as a dashed `--green` circle.
+- **Patients with a non-disclosure order (turvakielto) get no home marker and no circle.**
+- Hovering a card highlights its pin, and clicking a pin scrolls to its card. Coordinates are WGS84.
+
+### Booking dialog
+
+`.modal.wide` with group details (`.details`), the contact person (`.contact`), and actions that depend on the listing's `booking.type`:
+- **contact:** Close.
+- **external:** Close, plus a link button to the organiser's booking system.
+- **integrated:** Cancel and Confirm. On success, a `.success` box shows the reference.
+
+### Component files
+
+Each component has a static reference file in `design/` (open `design/index.html` for the list). The React views in `src/views/` are the source of truth for behaviour; the HTML files are the visual spec and must use the same class names. `processing.html` animates only when served by `npm run dev` (it imports `src/lib/waves.ts`); `map.html` loads Leaflet from unpkg.
+
+| File | React source | Key classes |
+|---|---|---|
+| `topbar.html` | `src/App.tsx` | `.topbar`, `.brand`, `.lang-switch`, `.segment`, `.badge.demo` |
+| `login.html` | `src/views/Login.tsx` | `.login`, `.divider` |
+| `patient-search.html` | `src/views/PatientSearch.tsx` | `.search-row`, `.results-table` |
+| `access-dialog.html` | `src/views/PatientSearch.tsx`, `Modal.tsx` | `.modal`, `.identity` |
+| `patient-banner.html` | `src/views/PatientBanner.tsx` | `.patient-banner` |
+| `processing.html` | `src/views/Processing.tsx` | `.processing`, `.waves`, `.steps`, `.step-icon`, `.phrase` |
+| `topic-list.html` | `src/views/Results.tsx` | `.tags.editable`, `.tag.matched`, `.tag-remove` |
+| `filters.html` | `src/views/FilterBar.tsx` | `.filters`, `label.suggested` |
+| `group-card.html` | `src/views/Results.tsx` | `.card`, `.card.active`, `.card.full`, `.card-rank`, `.fit`, `.seats` |
+| `map.html` | `src/views/GroupMap.tsx` | `.results-layout`, `.map-panel`, `.map-pin`, `.map-home` |
+| `booking-dialog.html` | `src/views/BookingDialog.tsx` | `.modal.wide`, `.details`, `.contact`, `.success`, `a.button` |
+
+## Buttons
+
+- `.primary`: `--green-dark` fill with white text, hover `--green`. One per view region.
+- `.secondary`: white with a `--border` outline, hover border `--green-light`.
+- `.segment`: language switch segments; the active one is filled `--green-dark`.
+- `.link`: text-only, `--green-dark`.
+- Focus: the shape's border turns `--green` (`--green-light` on primary buttons) and thickens to 2px.

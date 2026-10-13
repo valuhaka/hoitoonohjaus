@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Psyykkeri – Patient search</title>
+  <link rel="stylesheet" href="../src/styles.css" />
+</head>
+<body>
+<main class="content">
+  <section class="panel">
+    <h1>Hae asiakas</h1>
+    <form class="search-row">
+      <label class="grow">
+        Henkilötunnus tai nimi (Sukunimi Etunimi)
+        <input value="Virtanen Aino" />
+      </label>
+      <button class="primary" type="submit">Hae</button>
+    </form>
+    <table class="results-table">
+      <thead>
+        <tr><th>Nimi</th><th>Henkilötunnus</th><th>Kotikunta</th></tr>
+      </thead>
+      <tbody>
+        <tr tabindex="0"><td>Virtanen, Aino Maria</td><td class="mono">120358-912J</td><td>Lohja</td></tr>
+        <tr tabindex="0"><td>Virtanen, Aino Kaarina</td><td class="mono">040791-934U</td><td>Espoo</td></tr>
+        <tr tabindex="0"><td>Nieminen, Sanna Elina</td><td class="mono">091188-946W</td><td><span class="badge danger">Turvakielto</span></td></tr>
+      </tbody>
+    </table>
+  </section>
+</main>
+</body>
+</html>

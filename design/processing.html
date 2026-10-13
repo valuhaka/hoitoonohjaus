@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Psyykkeri – Processing</title>
+  <link rel="stylesheet" href="../src/styles.css" />
+</head>
+<body>
+<main class="content">
+  <div class="patient-banner">
+    <strong>Virtanen, Aino Maria</strong>
+    <span class="mono">120358-912J</span>
+    <span>68 v</span>
+    <span>Lohja</span>
+  </div>
+  <section class="processing">
+    <!-- Animated by src/lib/waves.ts; the animation runs when served by `npm run dev` -->
+    <svg class="waves" id="waves" viewBox="0 0 600 160" preserveAspectRatio="none" aria-hidden="true"></svg>
+    <ol class="steps">
+      <li class="done"><span class="step-icon">1</span>Poimitaan potilastietoja…</li>
+      <li class="active"><span class="step-icon">2</span>Sovitetaan saatavilla oleviin hoitoihin…</li>
+    </ol>
+    <p class="phrase" aria-hidden="true">Lasketaan etäisyyksiä…</p>
+  </section>
+</main>
+<script type="module">
+  import { animateWaves } from '../src/lib/waves.ts'
+  animateWaves(document.getElementById('waves'))
+</script>
+</body>
+</html>

@@ -11,3 +11,8 @@
 - TypeScript strict mode
 - Single quotes, no semicolons
 - Use functional patterns where possible
+
+## Styling
+
+- All styles live in `src/styles.css`; static component files are in `design/`
+- Follow `style.md` and update it whenever styles, tokens or components change
