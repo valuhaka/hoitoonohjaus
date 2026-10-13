@@ -7,6 +7,7 @@ import { Login, type User } from './views/Login'
 import { PatientSearch } from './views/PatientSearch'
 import { Processing } from './views/Processing'
 import { Results } from './views/Results'
+import { StatusBar } from './views/StatusBar'
 
 type Screen =
   | { name: 'search' }
@@ -16,6 +17,7 @@ type Screen =
 export const App = () => {
   const [lang, setLang] = useState<Lang>('fi')
   const [user, setUser] = useState<User | null>(null)
+  const [syncedAt, setSyncedAt] = useState(() => new Date())
   const [screen, setScreen] = useState<Screen>({ name: 'search' })
   const [, setAudit] = useState<AuditEntry[]>([])
   const t = DICTS[lang]
@@ -57,16 +59,11 @@ export const App = () => {
               </button>
             ))}
           </div>
-          {user && (
-            <>
-              <span className="user">{user.name} · {user.title}</span>
-              <button className="link" onClick={logout}>{t.logout}</button>
-            </>
-          )}
+          {user && <button className="link" onClick={logout}>{t.logout}</button>}
         </div>
       </header>
 
-      {!user && <Login onLogin={setUser} />}
+      {!user && <Login onLogin={u => { setUser(u); setSyncedAt(new Date()) }} />}
       {user && screen.name === 'search' && <PatientSearch onOpen={open} />}
       {user && screen.name === 'processing' && (
         <Processing patient={screen.patient} extractor={mockExtractor} onDone={onExtracted} />
@@ -75,6 +72,7 @@ export const App = () => {
         <Results patient={screen.patient} extraction={screen.extraction} referrer={user.name}
           onNewSearch={() => setScreen({ name: 'search' })} />
       )}
+      {user && <StatusBar user={user} syncedAt={syncedAt} />}
     </I18n.Provider>
   )
 }

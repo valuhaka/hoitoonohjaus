@@ -66,8 +66,7 @@ export const PatientSearch = ({
       </section>
 
       {selected && (
-        <Modal onClose={() => setSelected(null)} labelledBy="access-title">
-          <h2 id="access-title">{t.confirmTitle}</h2>
+        <Modal title={t.confirmTitle} onClose={() => setSelected(null)}>
           <p>{t.confirmIdentity}</p>
           <dl className="identity">
             <dt>{t.colName}</dt><dd>{selected.lastName}, {selected.firstNames}</dd>

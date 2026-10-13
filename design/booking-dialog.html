@@ -8,11 +8,13 @@
 </head>
 <body>
 <div class="modal-backdrop">
-  <div class="panel modal wide" role="dialog" aria-modal="true" aria-labelledby="booking-title">
-    <div>
+  <div class="modal wide" role="dialog" aria-modal="true" aria-labelledby="booking-title">
+    <header class="titlebar">
       <h2 id="booking-title">Yksinäisyydestä yhteyteen</h2>
-      <p class="organiser">LUVN Aikuisten psykososiaaliset palvelut</p>
-    </div>
+      <button class="titlebar-close" aria-label="Sulje">×</button>
+    </header>
+    <div class="modal-body">
+    <p class="organiser">LUVN Aikuisten psykososiaaliset palvelut</p>
     <dl class="details">
       <dt>Menetelmä</dt><dd>Psykoedukatiivinen vertaisryhmä</dd>
       <dt>Paikka</dt><dd>Laurinkatu 50, Lohja · 0 km</dd>
@@ -33,6 +35,7 @@
       <button class="secondary">Peruuta</button>
       <button class="primary">Vahvista varaus</button>
       <a class="button primary" href="#">Avaa: Mielikki ry ilmoittautuminen</a>
+    </div>
     </div>
   </div>
 </div>

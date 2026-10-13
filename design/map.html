@@ -4,31 +4,19 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Psyykkeri – Map</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="../src/styles.css" />
 </head>
 <body>
 <main class="content wide">
   <div class="results-layout">
     <div class="cards">
-      <p class="hint">Cards column (see group-card.html)</p>
+      <p class="hint">Cards column (see group-card.html). Needs `npm run dev` and public/maps/uusimaa.pmtiles.</p>
     </div>
-    <aside class="map-panel" aria-label="Ryhmät kartalla"><div id="map" class="map"></div></aside>
+    <aside class="map-panel" aria-label="Ryhmät kartalla">
+      <div class="map"><div id="map" class="map-canvas"></div></div>
+    </aside>
   </div>
 </main>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script>
-  const map = L.map('map', { scrollWheelZoom: false })
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; OpenStreetMap &copy; CARTO',
-  }).addTo(map)
-  const pin = (rank, cls = '') => L.divIcon({ className: '', html: `<div class="map-pin ${cls}">${rank}</div>`, iconSize: [28, 28], iconAnchor: [14, 14] })
-  const home = [60.249, 24.065]
-  L.circle(home, { radius: 25000, color: '#008d70', weight: 1, dashArray: '4 4', fillColor: '#89cabc', fillOpacity: 0.12 }).addTo(map)
-  L.marker(home, { icon: L.divIcon({ className: '', html: '<div class="map-home">Koti</div>', iconSize: [48, 22], iconAnchor: [24, 11] }) }).addTo(map)
-  const pins = [[60.2497, 24.0663, 1, 'active'], [60.3336, 24.3251, 2], [59.9739, 23.4381, 3], [60.2563, 24.0451, 4, 'full']]
-  pins.forEach(([lat, lon, rank, cls]) => L.marker([lat, lon], { icon: pin(rank, cls) }).addTo(map))
-  map.fitBounds([...pins.map(p => [p[0], p[1]]), home], { padding: [32, 32] })
-</script>
+<script type="module" src="./map.ts"></script>
 </body>
 </html>

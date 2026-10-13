@@ -61,6 +61,8 @@ const fi = {
   newSearch: 'Uusi haku',
   home: 'Koti',
   mapLabel: 'Ryhmät kartalla',
+  status: { connected: 'Yhdistetty: LUVN', synced: (time: string) => `Synkronoitu ${time}` },
+  mapMissing: 'Karttatiedosto puuttuu (public/maps/uusimaa.pmtiles).',
   phrases: [
     ['Luetaan potilaskertomusta', 'Tunnistetaan oireita', 'Tulkitaan elämäntilannetta', 'Arvioidaan motivaatiota', 'Huomioidaan liikkumarajoitteet'],
     ['Etsitään ryhmiä', 'Painotetaan harvinaisia aiheita', 'Lasketaan etäisyyksiä', 'Verrataan aikatauluja', 'Tarkistetaan vapaita paikkoja'],
@@ -162,6 +164,8 @@ const sv: Dict = {
   newSearch: 'Ny sökning',
   home: 'Hem',
   mapLabel: 'Grupperna på kartan',
+  status: { connected: 'Ansluten: LUVN', synced: (time: string) => `Synkroniserad ${time}` },
+  mapMissing: 'Kartfilen saknas (public/maps/uusimaa.pmtiles).',
   phrases: [
     ['Läser patientjournalen', 'Identifierar symtom', 'Tolkar livssituationen', 'Bedömer motivationen', 'Beaktar rörelsebegränsningar'],
     ['Söker grupper', 'Viktar ovanliga teman', 'Beräknar avstånd', 'Jämför scheman', 'Kontrollerar lediga platser'],
@@ -261,6 +265,8 @@ const en: Dict = {
   newSearch: 'New search',
   home: 'Home',
   mapLabel: 'Groups on the map',
+  status: { connected: 'Connected: LUVN', synced: (time: string) => `Synced ${time}` },
+  mapMissing: 'Map file missing (public/maps/uusimaa.pmtiles).',
   phrases: [
     ['Reading the patient record', 'Identifying symptoms', 'Interpreting life situation', 'Assessing motivation', 'Considering mobility limitations'],
     ['Searching for groups', 'Weighting rare topics', 'Calculating distances', 'Comparing schedules', 'Checking available seats'],

@@ -24,6 +24,22 @@ Single source of styling: `src/styles.css`. The React app imports it, and the st
 
 **Contrast rule:** `#008D70` on white is about 4.2:1, which fails WCAG AA for normal-size text. Use it for lines, fills and large or decorative elements only. Green text and white-on-green buttons use `#015742` (about 8.6:1). `#015742` on `#89CABC` is about 4.6:1, which is fine for the bold rank number.
 
+## Depth: the Windows 7 / OS X feel
+
+Depth comes from light, never from decoration. Raised surfaces are slightly lit from above; editable fields are slightly recessed. Gradients stay within a few percent of brightness. No gloss, reflections, textures or rounded "candy" shapes.
+
+| Token / element | Use |
+|---|---|
+| `--shadow-raised` | Panels, cards, filters, map panel: a faint 1px edge plus a soft, wide shadow |
+| `--shadow-window` | Dialogs |
+| `--shadow-inset` | Inputs and selects: a 1px inner top shadow ("type here") |
+| `--highlight` | 1px white inner top line on raised fills (buttons, banner, rank squares, pins) |
+| `--chrome-top` → `--chrome-bottom` | Window chrome gradient: dialog title bars and the status bar |
+| Buttons | Vertical gradient from `--btn-top` (86% fill + white) to `--btn-bg`; the border layer darkens towards the bottom; pressed (`:active`) flips the gradient and adds an inner shadow |
+| Top bar | Frosted glass: 78% white with `backdrop-filter: blur(14px)`, sticky |
+| Dialog backdrop | Dimmed green with a 3px blur |
+| Selection | Table row hover and the active card use a soft green gradient instead of a flat tint |
+
 ## Shape and layout
 
 - **Boxes are rectangular:** `border-radius: 0` globally. The only exception is the small loading spinner inside buttons.
@@ -33,8 +49,9 @@ Single source of styling: `src/styles.css`. The React app imports it, and the st
   - **Text-only buttons** (`.link`, `.tag-remove`) have no shape.
   - Links that act as buttons use `class="button primary"`.
 - Panels: white, 1px `--border`, 1.5rem padding.
-- Accent edges instead of shadows: 3px `--green` bottom border on the top bar and top border on dialogs, 4px `--green` left border on group cards. The active (hovered or map-selected) card gets a `--green-light` outline.
-- Content column max width 960px (`.content`). The results page uses `.content.wide` (1280px) for cards plus map. 1rem side gutter.
+- Accent edges: 3px `--green` bottom border on the top bar and top border on dialogs, 4px `--green` left border on group cards. The active (hovered or map-selected) card gets a `--green-light` outline.
+- Content column max width 960px (`.content`). The results page uses `.content.wide` (1280px): `.results-main` (topics, filters, cards) on the left and the sticky map on the right, both starting right under the patient banner. 1rem side gutter.
+- The top bar (`--topbar-h`) is sticky and the status bar (`--statusbar-h`) is fixed; the map panel's height is derived from both so it always fits the window.
 - Spacing: cards are 1.5rem apart with 1.5rem padding.
 
 ## Content rules
@@ -58,11 +75,20 @@ A dark green panel (`.processing`) with animated white strings (`.waves`, drawn 
 
 ### Map
 
-Leaflet with CARTO Positron tiles (OpenStreetMap data), sticky to the right of the cards (`.results-layout`, `.map-panel`). Below 900px wide, the map moves above the cards at 300px tall.
+MapLibre GL with an offline Protomaps basemap (`public/maps/`, see README.md), set up in `src/lib/basemap.ts`. The Protomaps "light" flavour is recoloured towards the palette (mint water, green-grey land and parks). Map labels follow the UI language. The map sits sticky to the right of the cards (`.results-layout`, `.map-panel`). Below 900px wide, it moves above the cards at 300px tall. If the map file is missing, a red notice says so instead of showing a blank panel.
 - Pins (`.map-pin`) are dark green squares carrying the card's rank. Full groups are grey; the active pin is `--green`, enlarged, with a `--green-light` outline.
-- Home (`.map-home`) is a white box with a dark green border. The distance filter is drawn as a dashed `--green` circle.
+- Pins are MapLibre markers, which MapLibre positions with `transform`. Pin states must change size, never `transform`.
+- Home (`.map-home`) is a white box with a dark green border, anchored just below the point so it doesn't hide a pin at the same place. The distance filter is drawn as a dashed `--green` circle, and the view fits the whole circle.
 - **Patients with a non-disclosure order (turvakielto) get no home marker and no circle.**
 - Hovering a card highlights its pin, and clicking a pin scrolls to its card. Coordinates are WGS84.
+
+### Dialogs
+
+Every dialog is a window (`Modal.tsx`): a `.titlebar` with the title and a text-only close `×`, then `.modal-body`. Escape and clicking the backdrop also close it.
+
+### Status bar
+
+`.statusbar`, fixed to the bottom while signed in: a small green light with "Yhdistetty: LUVN", the last sync time, and the signed-in user. Segments are separated by grooves (a border plus a white line). On narrow screens the user segment is hidden. The user's name appears only here, not in the top bar.
 
 ### Booking dialog
 
@@ -73,26 +99,27 @@ Leaflet with CARTO Positron tiles (OpenStreetMap data), sticky to the right of t
 
 ### Component files
 
-Each component has a static reference file in `design/` (open `design/index.html` for the list). The React views in `src/views/` are the source of truth for behaviour; the HTML files are the visual spec and must use the same class names. `processing.html` animates only when served by `npm run dev` (it imports `src/lib/waves.ts`); `map.html` loads Leaflet from unpkg.
+Each component has a static reference file in `design/` (open `design/index.html` for the list). The React views in `src/views/` are the source of truth for behaviour; the HTML files are the visual spec and must use the same class names. `processing.html` and `map.html` (with `map.ts`) import from `src/` and work only when served by `npm run dev`.
 
 | File | React source | Key classes |
 |---|---|---|
 | `topbar.html` | `src/App.tsx` | `.topbar`, `.brand`, `.lang-switch`, `.segment`, `.badge.demo` |
 | `login.html` | `src/views/Login.tsx` | `.login`, `.divider` |
 | `patient-search.html` | `src/views/PatientSearch.tsx` | `.search-row`, `.results-table` |
-| `access-dialog.html` | `src/views/PatientSearch.tsx`, `Modal.tsx` | `.modal`, `.identity` |
+| `access-dialog.html` | `src/views/PatientSearch.tsx`, `Modal.tsx` | `.modal`, `.titlebar`, `.modal-body`, `.identity` |
 | `patient-banner.html` | `src/views/PatientBanner.tsx` | `.patient-banner` |
 | `processing.html` | `src/views/Processing.tsx` | `.processing`, `.waves`, `.steps`, `.step-icon`, `.phrase` |
 | `topic-list.html` | `src/views/Results.tsx` | `.tags.editable`, `.tag.matched`, `.tag-remove` |
 | `filters.html` | `src/views/FilterBar.tsx` | `.filters`, `label.suggested` |
 | `group-card.html` | `src/views/Results.tsx` | `.card`, `.card.active`, `.card.full`, `.card-rank`, `.fit`, `.seats` |
-| `map.html` | `src/views/GroupMap.tsx` | `.results-layout`, `.map-panel`, `.map-pin`, `.map-home` |
+| `map.html` | `src/views/GroupMap.tsx`, `src/lib/basemap.ts` | `.results-layout`, `.map-panel`, `.map`, `.map-canvas`, `.map-pin`, `.map-home` |
 | `booking-dialog.html` | `src/views/BookingDialog.tsx` | `.modal.wide`, `.details`, `.contact`, `.success`, `a.button` |
+| `statusbar.html` | `src/views/StatusBar.tsx` | `.statusbar`, `.status-light` |
 
 ## Buttons
 
 - `.primary`: `--green-dark` fill with white text, hover `--green`. One per view region.
-- `.secondary`: white with a `--border` outline, hover border `--green-light`.
+- `.secondary`: white-to-pale-green gradient with a `#C5D6D0` outline, hover border `--green-light`.
 - `.segment`: language switch segments; the active one is filled `--green-dark`.
 - `.link`: text-only, `--green-dark`.
 - Focus: the shape's border turns `--green` (`--green-light` on primary buttons) and thickens to 2px.

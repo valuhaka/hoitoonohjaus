@@ -1,16 +1,21 @@
-import { useEffect, type ReactNode } from 'react'
+import { useEffect, useId, type ReactNode } from 'react'
+import { useT } from '../i18n'
 
+// Window-like dialog: a title bar with the title and a close button, then the body
 export const Modal = ({
+  title,
   onClose,
-  labelledBy,
   wide,
   children,
 }: {
+  title: string
   onClose: () => void
-  labelledBy: string
   wide?: boolean
   children: ReactNode
 }) => {
+  const { t } = useT()
+  const titleId = useId()
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
     window.addEventListener('keydown', onKey)
@@ -19,9 +24,13 @@ export const Modal = ({
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
-      <div className={wide ? 'panel modal wide' : 'panel modal'} role="dialog" aria-modal="true"
-        aria-labelledby={labelledBy} onClick={e => e.stopPropagation()}>
-        {children}
+      <div className={wide ? 'modal wide' : 'modal'} role="dialog" aria-modal="true"
+        aria-labelledby={titleId} onClick={e => e.stopPropagation()}>
+        <header className="titlebar">
+          <h2 id={titleId}>{title}</h2>
+          <button className="titlebar-close" aria-label={t.close} onClick={onClose}>×</button>
+        </header>
+        <div className="modal-body">{children}</div>
       </div>
     </div>
   )

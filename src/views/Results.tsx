@@ -111,37 +111,39 @@ export const Results = ({
     <main className="content wide">
       <PatientBanner patient={patient} />
 
-      <section className="panel">
-        <h2>{t.extractedTitle}</h2>
-        <div className="tags editable">
-          {tags.map(id => (
-            <span key={id} className="tag matched" title={evidence.get(id) ?? ''}>
-              {label(id, lang)}
-              <button className="tag-remove" aria-label={`${t.removeTag}: ${label(id, lang)}`}
-                onClick={() => setTags(tags.filter(x => x !== id))}>×</button>
-            </span>
-          ))}
-          <select value="" onChange={e => setTags([...tags, e.target.value as HashtagId])}>
-            <option value="" disabled>{t.addTag}</option>
-            {addable.map(id => <option key={id} value={id}>{label(id, lang)}</option>)}
-          </select>
-        </div>
-      </section>
-
-      <h2>{t.resultsTitle}</h2>
-      <FilterBar filters={filters} guess={guess} onChange={setFilters} />
       <div className="results-layout">
-        <div className="cards">
-          {ranked.length === 0 && <p className="hint">{t.noMatches}</p>}
-          {ranked.length > 0 && visible.length === 0 && <p className="hint">{t.noFilteredMatches}</p>}
-          {visible.map((m, i) => (
-            <GroupCard key={m.group.id} match={m} rank={i + 1}
-              reserved={m.group.id in holds}
-              active={m.group.id === activeId}
-              cardRef={el => { if (el) cardRefs.current.set(m.group.id, el); else cardRefs.current.delete(m.group.id) }}
-              onHover={() => setActiveId(m.group.id)}
-              onReserve={() => setBookingFor(m.group.id)} />
-          ))}
+        <div className="results-main">
+          <section className="panel">
+            <h2>{t.extractedTitle}</h2>
+            <div className="tags editable">
+              {tags.map(id => (
+                <span key={id} className="tag matched" title={evidence.get(id) ?? ''}>
+                  {label(id, lang)}
+                  <button className="tag-remove" aria-label={`${t.removeTag}: ${label(id, lang)}`}
+                    onClick={() => setTags(tags.filter(x => x !== id))}>×</button>
+                </span>
+              ))}
+              <select value="" onChange={e => setTags([...tags, e.target.value as HashtagId])}>
+                <option value="" disabled>{t.addTag}</option>
+                {addable.map(id => <option key={id} value={id}>{label(id, lang)}</option>)}
+              </select>
+            </div>
+          </section>
+
+          <h2>{t.resultsTitle}</h2>
+          <FilterBar filters={filters} guess={guess} onChange={setFilters} />
+          <div className="cards">
+            {ranked.length === 0 && <p className="hint">{t.noMatches}</p>}
+            {ranked.length > 0 && visible.length === 0 && <p className="hint">{t.noFilteredMatches}</p>}
+            {visible.map((m, i) => (
+              <GroupCard key={m.group.id} match={m} rank={i + 1}
+                reserved={m.group.id in holds}
+                active={m.group.id === activeId}
+                cardRef={el => { if (el) cardRefs.current.set(m.group.id, el); else cardRefs.current.delete(m.group.id) }}
+                onHover={() => setActiveId(m.group.id)}
+                onReserve={() => setBookingFor(m.group.id)} />
+            ))}
+          </div>
         </div>
         <aside className="map-panel" aria-label={t.mapLabel}>
           <GroupMap matches={visible}

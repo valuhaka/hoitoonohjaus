@@ -40,11 +40,8 @@ export const BookingDialog = ({
   }
 
   return (
-    <Modal onClose={onClose} labelledBy="booking-title" wide>
-      <div>
-        <h2 id="booking-title">{group.name}</h2>
-        <p className="organiser">{group.organiser}</p>
-      </div>
+    <Modal title={group.name} onClose={onClose} wide>
+      <p className="organiser">{group.organiser}</p>
 
       <dl className="details">
         <dt>{t.booking.method}</dt><dd>{group.method}</dd>
