@@ -177,6 +177,10 @@ const fi = {
     distance: 'Etäisyys',
     reset: 'Tyhjennä suodattimet',
     suggested: 'Ehdotettu potilastietojen perusteella',
+    session: 'Toteutus',
+    sessions: { any: 'Kaikki', inPerson: 'Paikan päällä', remote: 'Etänä', hybrid: 'Hybridi', video: 'Video', phone: 'Puhelin', chat: 'Chat / kirjoittaen', online: 'Verkko-ohjelma' },
+    gender: 'Sukupuoli',
+    genders: { any: 'Kaikki', male: 'Mies', female: 'Nainen', other: 'Muu' },
   },
   browser: {
     title: 'Selaa hoitoja',
@@ -388,6 +392,10 @@ const sv: Dict = {
     distance: 'Avstånd',
     reset: 'Rensa filter',
     suggested: 'Föreslaget utifrån patientuppgifterna',
+    session: 'Genomförande',
+    sessions: { any: 'Alla', inPerson: 'På plats', remote: 'På distans', hybrid: 'Hybrid', video: 'Video', phone: 'Telefon', chat: 'Chatt / skriftligt', online: 'Webbprogram' },
+    gender: 'Kön',
+    genders: { any: 'Alla', male: 'Man', female: 'Kvinna', other: 'Annat' },
   },
   browser: {
     title: 'Bläddra bland behandlingar',
@@ -597,6 +605,10 @@ const en: Dict = {
     distance: 'Distance',
     reset: 'Clear filters',
     suggested: 'Suggested from the patient record',
+    session: 'Session type',
+    sessions: { any: 'Any', inPerson: 'In person', remote: 'Remote', hybrid: 'Hybrid', video: 'Video', phone: 'Phone', chat: 'Chat / written', online: 'Online programme' },
+    gender: 'Gender',
+    genders: { any: 'Any', male: 'Male', female: 'Female', other: 'Other' },
   },
   browser: {
     title: 'Browse treatments',

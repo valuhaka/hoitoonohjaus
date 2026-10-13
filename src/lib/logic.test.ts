@@ -8,7 +8,7 @@ import { ADAPTERS } from './booking'
 import { authenticate, canAccess, ownPatients } from './auth'
 import { isEligible } from './eligibility'
 import { allData, mockExtractor } from './extraction'
-import { applyFilters, guessFilters, NO_FILTERS } from './filters'
+import { applyFilters, feeScale, guessFilters, NO_FILTERS } from './filters'
 import { lookupNavigatorCode } from './navigator'
 import { rankLabel } from './rank'
 import { searchPatients } from './registry'
@@ -84,6 +84,10 @@ describe('filters', () => {
   it('filters by start date', () => {
     const within = applyFilters(all, { ...NO_FILTERS, startsWithinDays: 14 }, NOW)
     expect(within.every(m => m.group.startDate !== null && m.group.startDate <= '2026-10-27')).toBe(true)
+  })
+  it('tops the fee scale at the highest listed fee', () => {
+    expect(feeScale(GROUPS).max).toBe(12)
+    expect(feeScale(REAL_GROUPS).max).toBe(0)
   })
 })
 
@@ -306,6 +310,33 @@ describe('real listings in matching', () => {
   })
   it('links every real listing to the organiser', () => {
     REAL_GROUPS.forEach(g => expect(g.booking.type).toBe('external'))
+  })
+  it('tags every real treatment with a session type and at least one gender', () => {
+    TREATMENTS.forEach(t => {
+      expect(['inPerson', 'hybrid', 'video', 'phone', 'chat', 'online']).toContain(t.format)
+      expect(t.genders.length).toBeGreaterThan(0)
+    })
+  })
+  it('filters by gender', () => {
+    const ranked = rankGroups(['ero', 'traumat'], home, REAL_GROUPS)
+    const forWomen = applyFilters(ranked, { ...NO_FILTERS, gender: 'female' }, NOW).map(m => m.group.serviceId)
+    const forMen = applyFilters(ranked, { ...NO_FILTERS, gender: 'male' }, NOW).map(m => m.group.serviceId)
+    expect(forWomen).toContain('nl-olen-selviytyja')
+    expect(forWomen).not.toContain('ms-eroryhma-verkko')
+    expect(forMen).toContain('ms-eroryhma-verkko')
+    expect(forMen).not.toContain('nl-olen-selviytyja')
+    expect(forWomen).toContain('mieli-kriisipuhelin')
+  })
+  it('counts hybrid services as both in person and remote', () => {
+    const ranked = rankGroups(['stressi', 'uupumus', 'ahdistus', 'masennus'], home, REAL_GROUPS)
+    const ids = (session: typeof NO_FILTERS.session) =>
+      applyFilters(ranked, { ...NO_FILTERS, session }, NOW).map(m => m.group.serviceId)
+    expect(ids('inPerson')).toContain('hki-mieppi')
+    expect(ids('remote')).toContain('hki-mieppi')
+    expect(ids('remote')).toContain('mieli-kriisipuhelin')
+    expect(ids('inPerson')).not.toContain('mieli-kriisipuhelin')
+    expect(ids('phone')).toEqual(expect.arrayContaining(['mieli-kriisipuhelin']))
+    expect(ids('phone')).not.toContain('hki-mieppi')
   })
 })
 

@@ -5,7 +5,7 @@ import type { Patient } from '../data/patients'
 import type { User } from '../lib/auth'
 import type { Extraction } from '../lib/extraction'
 import { ageAt } from '../lib/hetu'
-import { applyFilters, guessFilters, type Filters } from '../lib/filters'
+import { applyFilters, feeScale, guessFilters, type Filters } from '../lib/filters'
 import { rankGroups } from '../lib/match'
 import { rankLabel } from '../lib/rank'
 import { useT, type Lang } from '../i18n'
@@ -81,7 +81,7 @@ export const Results = ({
           </section>
 
           <h2>{t.resultsTitle}</h2>
-          <FilterBar filters={filters} guess={guess} onChange={setFilters} />
+          <FilterBar filters={filters} guess={guess} feeScale={feeScale(groups)} onChange={setFilters} />
           <div className="cards">
             {ranked.length === 0 && <p className="hint">{t.noMatches}</p>}
             {ranked.length > 0 && visible.length === 0 && <p className="hint">{t.noFilteredMatches}</p>}

@@ -2,9 +2,7 @@ import type { BookingConfig, Contact } from '../lib/booking'
 import { LUVN_MUNICIPALITIES, type Eligibility } from '../lib/eligibility'
 import type { Coords } from '../lib/geo'
 import type { HashtagId } from './hashtags'
-import type { EnrolmentStatus, Lang } from './treatments'
-
-export type GroupFormat = 'inPerson' | 'remote'
+import { GENDERS, type EnrolmentStatus, type Gender, type Lang, type SessionType } from './treatments'
 
 // null means the organiser does not publish the value; unknown values never filter a listing out
 export type GroupListing = {
@@ -14,7 +12,8 @@ export type GroupListing = {
   name: string
   organiser: string
   method: string
-  format: GroupFormat
+  format: SessionType
+  genders: Gender[]
   address: string
   municipality: string
   coords: Coords | null
@@ -53,6 +52,7 @@ export const GROUPS: GroupListing[] = [
     organiser: 'LUVN Aikuisten psykososiaaliset palvelut',
     method: 'Psykoedukatiivinen vertaisryhmä',
     format: 'inPerson',
+    genders: GENDERS,
     address: 'Laurinkatu 50, Lohja',
     municipality: 'Lohja',
     coords: { lat: 60.2497, lon: 24.0663 },
@@ -77,6 +77,7 @@ export const GROUPS: GroupListing[] = [
     organiser: 'LUVN Aikuisten mielenterveyspalvelut, Leppävaara',
     method: 'Kognitiivinen käyttäytymisterapia (KKT)',
     format: 'inPerson',
+    genders: GENDERS,
     address: 'Hevosenkenkä 3, Espoo',
     municipality: 'Espoo',
     coords: { lat: 60.2193, lon: 24.8129 },
@@ -101,6 +102,7 @@ export const GROUPS: GroupListing[] = [
     organiser: 'LUVN Aikuisten mielenterveyspalvelut, Espoonlahti',
     method: 'Hyväksymis- ja omistautumisterapia (ACT)',
     format: 'inPerson',
+    genders: GENDERS,
     address: 'Espoonlahdenkatu 4, Espoo',
     municipality: 'Espoo',
     coords: { lat: 60.1488, lon: 24.6623 },
@@ -124,7 +126,8 @@ export const GROUPS: GroupListing[] = [
     name: 'Unikoulu verkossa',
     organiser: 'LUVN Mielenterveys- ja päihdepalvelut',
     method: 'Unettomuuden KKT (KKT-I)',
-    format: 'remote',
+    format: 'video',
+    genders: GENDERS,
     address: 'Etäryhmä (videoyhteys)',
     municipality: 'Etä',
     coords: null,
@@ -149,6 +152,7 @@ export const GROUPS: GroupListing[] = [
     organiser: 'Kumppanuuskeskus Silta ry',
     method: 'Sururyhmä, ohjattu vertaistuki',
     format: 'inPerson',
+    genders: GENDERS,
     address: 'Seuratie 2, Nummela',
     municipality: 'Vihti',
     coords: { lat: 60.3336, lon: 24.3251 },
@@ -173,6 +177,7 @@ export const GROUPS: GroupListing[] = [
     organiser: 'Föreningen Ankaret rf',
     method: 'Aktivoiva vertaisryhmä',
     format: 'inPerson',
+    genders: GENDERS,
     address: 'Kungsgatan 12, Tammisaari',
     municipality: 'Raasepori',
     coords: { lat: 59.9739, lon: 23.4381 },
@@ -197,6 +202,7 @@ export const GROUPS: GroupListing[] = [
     organiser: 'LUVN Nuorten aikuisten palvelut, Tapiola',
     method: 'DKT-pohjainen tunnetaitoryhmä',
     format: 'inPerson',
+    genders: GENDERS,
     address: 'Kauppamiehentie 6, Espoo',
     municipality: 'Espoo',
     coords: { lat: 60.1757, lon: 24.8044 },
@@ -221,6 +227,7 @@ export const GROUPS: GroupListing[] = [
     organiser: 'LUVN Aikuisten mielenterveyspalvelut, Lohja',
     method: 'Traumatietoinen vakauttava ryhmä',
     format: 'inPerson',
+    genders: GENDERS,
     address: 'Sairaalatie 8, Lohja',
     municipality: 'Lohja',
     coords: { lat: 60.2563, lon: 24.0451 },
@@ -245,6 +252,7 @@ export const GROUPS: GroupListing[] = [
     organiser: 'Mielikki ry',
     method: 'Voimavarakeskeinen ryhmä',
     format: 'inPerson',
+    genders: GENDERS,
     address: 'Valtatie 30, Karkkila',
     municipality: 'Karkkila',
     coords: { lat: 60.5346, lon: 24.2096 },
@@ -269,6 +277,7 @@ export const GROUPS: GroupListing[] = [
     organiser: 'LUVN Kipupoliklinikka, Hanko',
     method: 'Hyväksymis- ja omistautumisterapia (ACT)',
     format: 'inPerson',
+    genders: GENDERS,
     address: 'Esplanadi 63, Hanko',
     municipality: 'Hanko',
     coords: { lat: 59.8236, lon: 22.9697 },
@@ -293,6 +302,7 @@ export const GROUPS: GroupListing[] = [
     organiser: 'HUS Psykiatria, Psykiatriakeskus',
     method: 'Kognitiivinen käyttäytymisterapia (KKT)',
     format: 'inPerson',
+    genders: GENDERS,
     address: 'Välskärinkatu 12, Helsinki',
     municipality: 'Helsinki',
     coords: { lat: 60.1905, lon: 24.9006 },
@@ -317,6 +327,7 @@ export const GROUPS: GroupListing[] = [
     organiser: 'HUS Psykiatria, Nuorisopsykiatria',
     method: 'Kognitiivinen käyttäytymisterapia (KKT)',
     format: 'inPerson',
+    genders: GENDERS,
     address: 'Hämeentie 30, Helsinki',
     municipality: 'Helsinki',
     coords: { lat: 60.1876, lon: 24.9563 },
@@ -341,6 +352,7 @@ export const GROUPS: GroupListing[] = [
     organiser: 'HUS Psykiatria, Peijas',
     method: 'Traumafokusoitu ryhmähoito',
     format: 'inPerson',
+    genders: GENDERS,
     address: 'Sairaalakatu 1, Vantaa',
     municipality: 'Vantaa',
     coords: { lat: 60.332, lon: 25.054 },
@@ -365,6 +377,7 @@ export const GROUPS: GroupListing[] = [
     organiser: 'HUS Psykiatria, Jorvi',
     method: 'Motivoiva ryhmähoito',
     format: 'inPerson',
+    genders: GENDERS,
     address: 'Turuntie 150, Espoo',
     municipality: 'Espoo',
     coords: { lat: 60.2214, lon: 24.6697 },
@@ -389,6 +402,7 @@ export const GROUPS: GroupListing[] = [
     organiser: 'LUVN Lasten ja nuorten mielenterveyspalvelut, Karkkila',
     method: 'Kognitiivis-behavioraalinen ryhmä (KKT)',
     format: 'inPerson',
+    genders: GENDERS,
     address: 'Valtatie 20, Karkkila',
     municipality: 'Karkkila',
     coords: { lat: 60.5352, lon: 24.2105 },

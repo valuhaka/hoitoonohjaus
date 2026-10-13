@@ -93,7 +93,7 @@ A dark green panel (`.processing`) with animated white strings (`.waves`, drawn 
 
 ### Filters
 
-`.filters` bar above the results: start and time of day as selects; cost and distance as two-handle sliders (`.range-filter`, `.range`) like in online stores, with the chosen span drawn on the track and the value in an `output` (`0–25 km`, `Kaikki`). The minimum starts at 0; the right end of the scale means no upper limit. Slider handles are small rectangles. Filters guessed from the patient record (`guessFilters` in `src/lib/filters.ts`) are marked `.suggested` (green label, tinted select) while they keep the guessed value; the tooltip names the evidence. "Clear filters" appears only when any filter is active.
+`.filters` bar above the results: start, time of day, session type and gender as selects; cost and distance as two-handle sliders (`.range-filter`, `.range`) like in online stores, with the chosen span drawn on the track and the value in an `output` (`0–25 km`, `Kaikki`). The minimum starts at 0; the right end of the scale means no upper limit. The cost scale ends at the highest fee among the current listings (`feeScale`), and the slider is hidden when every listing is free; distance moves in 1 km steps. Session type "Paikan päällä" and "Etänä" both include hybrid services. Slider handles are small rectangles. Filters guessed from the patient record (`guessFilters` in `src/lib/filters.ts`) are marked `.suggested` (green label, tinted select) while they keep the guessed value; the tooltip names the evidence. "Clear filters" appears only when any filter is active.
 
 ### Treatment browser
 

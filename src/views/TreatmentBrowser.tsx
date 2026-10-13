@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react'
 import type { GroupListing } from '../data/groups'
-import { applyFilters, NO_FILTERS, type Filters } from '../lib/filters'
+import { applyFilters, feeScale, NO_FILTERS, type Filters } from '../lib/filters'
 import { browseGroups } from '../lib/match'
 import { DEFAULT_PLACE, PLACES } from '../lib/places'
 import { rankLabel } from '../lib/rank'
@@ -45,7 +45,7 @@ export const TreatmentBrowser = ({ groups, referrer }: { groups: GroupListing[];
       <h2 id="browser-title">{b.title}</h2>
       <div className="browser-layout">
         <div className="browser-main">
-          <FilterBar filters={filters} onChange={setFilters}>
+          <FilterBar filters={filters} feeScale={feeScale(groups)} onChange={setFilters}>
             <label>
               {b.from}
               <select value={place.id} onChange={e => setPlaceId(e.target.value)}>
