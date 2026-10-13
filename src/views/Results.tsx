@@ -47,7 +47,7 @@ const GroupCard = ({
       <div className="card-body">
         <header>
           <h3>{group.name}</h3>
-          <span className="fit" title={t.fit}>{Math.round(score * 100)} % {t.fit}</span>
+          {/* <span className="fit" title={t.fit}>{Math.round(score * 100)} % {t.fit}</span> */}
         </header>
         <p className="organiser">{group.organiser}</p>
         <div className="facts">
