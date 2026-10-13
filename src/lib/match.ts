@@ -38,6 +38,12 @@ const nearestPerService = (matches: Match[]): Match[] => [
     .values(),
 ]
 
+const located = (group: GroupListing, from: Coords) => ({
+  group,
+  distanceKm: group.coords ? distanceKm(from, group.coords) : null,
+  seatsLeft: seatsLeft(group),
+})
+
 const norm = (tags: HashtagId[], idf: Map<HashtagId, number>) =>
   Math.sqrt(tags.reduce((sum, t) => sum + (idf.get(t) ?? 0) ** 2, 0))
 
@@ -63,12 +69,7 @@ export const rankGroups = (
   const idf = idfWeights(groups)
   const matches = groups
     .filter(group => !candidate || isEligible(group.eligibility, { ...candidate, tags: patientTags }))
-    .map(group => ({
-      group,
-      ...fitScore(patientTags, group.tags, idf),
-      distanceKm: group.coords ? distanceKm(home, group.coords) : null,
-      seatsLeft: seatsLeft(group),
-    }))
+    .map(group => ({ ...located(group, home), ...fitScore(patientTags, group.tags, idf) }))
     .filter(m => m.score > 0)
   return nearestPerService(matches)
     .sort(
@@ -78,3 +79,7 @@ export const rankGroups = (
         (a.distanceKm ?? 0) - (b.distanceKm ?? 0),
     )
 }
+
+// Browsing without a patient: every listing, no fit score, distances from a chosen reference point
+export const browseGroups = (from: Coords, groups: GroupListing[]): Match[] =>
+  nearestPerService(groups.map(group => ({ ...located(group, from), score: 0, matched: [] })))

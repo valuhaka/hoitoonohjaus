@@ -82,8 +82,8 @@ export const PatientSearch = ({
   }
 
   return (
-    <main className="content">
-      <section className="panel">
+    <>
+      <section className="panel search-panel">
         <form className="search-row" onSubmit={submit}>
           <label className="grow">
             <span className="visually-hidden">{t.searchLabel}</span>
@@ -123,6 +123,6 @@ export const PatientSearch = ({
       {selected && (
         <AccessDialog key={selected.hetu} patient={selected} onOpen={onOpen} onClose={() => setSelected(null)} />
       )}
-    </main>
+    </>
   )
 }

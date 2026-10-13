@@ -95,6 +95,15 @@ A dark green panel (`.processing`) with animated white strings (`.waves`, drawn 
 
 `.filters` bar above the results: start and time of day as selects; cost and distance as two-handle sliders (`.range-filter`, `.range`) like in online stores, with the chosen span drawn on the track and the value in an `output` (`0–25 km`, `Kaikki`). The minimum starts at 0; the right end of the scale means no upper limit. Slider handles are small rectangles. Filters guessed from the patient record (`guessFilters` in `src/lib/filters.ts`) are marked `.suggested` (green label, tinted select) while they keep the guessed value; the tooltip names the evidence. "Clear filters" appears only when any filter is active.
 
+### Treatment browser
+
+The home page after login (`.content.wide.home`) has the patient search (professionals) or the own-data panel (patients, proxies) on top, with generous space below it (`.home` gap 2.5rem, `.search-panel`), then "Selaa hoitoja" (`.browser`). It browses every listing without personal details, so it calculates no fit.
+- Layout (`.browser-layout`): the listings take the left half (`.browser-main`); the square map sits top right (`.map-panel`, not sticky here) with "Uudet hoidot" (`.newest`) under it. Below 900px wide, the order is map, newest, listings.
+- The filter bar is the same `FilterBar`. Two selects come first: "Etäisyys paikasta" (a LUVN municipal centre, default Lohja, `src/lib/places.ts`) and "Järjestys": nearest (default), most distant, cheapest, most expensive, A–Ö, Ö–A (`src/lib/sort.ts`). Unknown distances and fees go last in either direction.
+- Cards are the same `GroupCard` (`src/views/GroupCard.tsx`) with letters shared with the pins. Newest cards show "Lisätty d.m.yyyy" (`.added`) in the card header. A newest card whose listing is filtered out has no letter (`.card.unranked`). Three are shown; "Näytä lisää" (`button.secondary.wide`) shows ten.
+- On the map, the reference point uses the home box with a crosshair icon and the municipality name. There is no zoom-in and no care network.
+- "Lisätietoja" opens the same information dialog. Seats can't be reserved from it, because there is no patient; a hint says seats are booked from the search results.
+
 ### Map
 
 MapLibre GL with an offline Protomaps basemap (`public/maps/`, see README.md), set up in `src/lib/basemap.ts`. The Protomaps "light" flavour is recoloured towards the palette (mint water, green-grey land and parks). Map labels follow the UI language. The map is square and sits sticky to the right of the cards (`.results-layout`, `.map-panel`). Below 900px wide, it moves above the cards. "Suurenna kartta" (`.map-expand`) opens it as a window over the page (`.map.expanded` with a `.map-backdrop`); Escape or the backdrop closes it. A small legend (`.map-legend`) sits bottom left.
@@ -143,7 +152,8 @@ Each component has a static reference file in `design/` (open `design/index.html
 | `processing.html` | `src/views/Processing.tsx` | `.processing`, `.waves`, `.steps`, `.step-icon`, `.phrase` |
 | `topic-list.html` | `src/views/Results.tsx` | `.tags.editable`, `.tag.matched`, `.tag-remove` |
 | `filters.html` | `src/views/FilterBar.tsx` | `.filters`, `label.suggested`, `.range-filter`, `.range` |
-| `group-card.html` | `src/views/Results.tsx` | `.card`, `.card.active`, `.card.full`, `.card-rank`, `.fit`, `.seats` |
+| `group-card.html` | `src/views/GroupCard.tsx` | `.card`, `.card.active`, `.card.full`, `.card.unranked`, `.card-rank`, `.added`, `.seats` |
+| `treatment-browser.html` | `src/views/TreatmentBrowser.tsx` | `.home`, `.search-panel`, `.browser`, `.browser-layout`, `.browser-main`, `.newest` |
 | `map.html` | `src/views/GroupMap.tsx`, `src/lib/basemap.ts` | `.results-layout`, `.map-panel`, `.map`, `.map-canvas`, `.map-pin`, `.map-home`, `.map-contact`, `.map-expand`, `.map-legend` |
 | `booking-dialog.html` | `src/views/BookingDialog.tsx` | `.modal.wide`, `.details`, `.criteria`, `.contact`, `.success`, `a.button` |
 | `statusbar.html` | `src/views/StatusBar.tsx` | `.statusbar`, `.status-light` |

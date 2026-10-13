@@ -9,7 +9,7 @@ import type { Range } from '../lib/filters'
 import type { Match } from '../lib/match'
 import { rankLabel } from '../lib/rank'
 import { useT } from '../i18n'
-import { iconSvg } from './mapIcons'
+import { iconSvg, type MapIconKind } from './mapIcons'
 
 const RADIUS_SOURCE = 'distance-radius'
 const NETWORK_SOURCE = 'care-network'
@@ -58,22 +58,25 @@ const contactElement = (kind: CareContactKind, label: string, name: string) => {
   return el
 }
 
-const homeElement = (label: string) => {
+const homeElement = (label: string, icon: MapIconKind) => {
   const el = document.createElement('div')
   el.className = 'map-home'
-  el.innerHTML = iconSvg('home')
+  el.innerHTML = iconSvg(icon)
   el.append(label)
   return el
 }
 
 // Icon for the legend, rendered from the same markup as the markers
-const Icon = ({ kind }: { kind: CareContactKind | 'home' }) =>
+const Icon = ({ kind }: { kind: MapIconKind }) =>
   <span className="key icon" dangerouslySetInnerHTML={{ __html: iconSvg(kind) }} />
 
 export const GroupMap = ({
   matches,
   all,
   home,
+  homeLabel,
+  homeIcon = 'home',
+  zoomIn = true,
   contacts,
   range,
   activeId,
@@ -84,6 +87,11 @@ export const GroupMap = ({
   all: Match[]
   // null and [] when the patient's locations must not be shown (turvakielto)
   home: Coords | null
+  // When browsing, the reference point takes the place of home
+  homeLabel?: string
+  homeIcon?: MapIconKind
+  // Zoom in from the overview to home when the map opens
+  zoomIn?: boolean
   contacts: CareContact[]
   // The distance filter, drawn as a donut around home
   range: Range
@@ -91,6 +99,7 @@ export const GroupMap = ({
   onSelect: (groupId: string) => void
 }) => {
   const { t, lang } = useT()
+  const centreLabel = homeLabel ?? t.home
   const container = useRef<HTMLDivElement>(null)
   const map = useRef<maplibregl.Map | null>(null)
   const markers = useRef<maplibregl.Marker[]>([])
@@ -142,7 +151,7 @@ export const GroupMap = ({
       ...contacts.map(c =>
         new maplibregl.Marker({ element: contactElement(c.kind, t.map.kinds[c.kind], c.name), anchor: 'left', offset: [-11, 0] })
           .setLngLat([c.coords.lon, c.coords.lat])),
-      ...(home ? [new maplibregl.Marker({ element: homeElement(t.home), anchor: 'top', offset: [0, 18] }).setLngLat([home.lon, home.lat])] : []),
+      ...(home ? [new maplibregl.Marker({ element: homeElement(centreLabel, homeIcon), anchor: 'top', offset: [0, 18] }).setLngLat([home.lon, home.lat])] : []),
       ...located.map(({ match, rank, coords }) => {
         const classes = ['map-pin', match.seatsLeft === 0 && 'full', match.group.id === activeId && 'active']
         const el = pinElement(rank, classes.filter(Boolean).join(' '))
@@ -171,7 +180,7 @@ export const GroupMap = ({
       ...contacts.map(c => c.coords),
     ]
     if (overview.length > 0) m.fitBounds(boundsOf(overview), { padding: 40, maxZoom: 12, duration: 0 })
-    if (!home) return
+    if (!home || !zoomIn) return
     const id = setTimeout(
       () => m.fitBounds(boundsOf(circlePoints(home, HOME_RADIUS_KM)), { padding: 24, duration: ZOOM_IN_MS }),
       OVERVIEW_PAUSE_MS,
@@ -180,17 +189,18 @@ export const GroupMap = ({
   // Runs when the map becomes ready; later changes are handled below
   }, [ready])
 
-  // After the opening, refit only when the outer distance limit changes
-  const lastMax = useRef(range.max)
+  // After the opening, refit only when the outer distance limit or its centre changes
+  const fitKey = `${range.max}@${home?.lat},${home?.lon}`
+  const lastFit = useRef(fitKey)
   useEffect(() => {
     const m = map.current
-    if (!m || !ready || lastMax.current === range.max) return
-    lastMax.current = range.max
+    if (!m || !ready || lastFit.current === fitKey) return
+    lastFit.current = fitKey
     const points = home && range.max !== null
       ? circlePoints(home, range.max)
       : [...located.map(l => l.coords), ...(home ? [home] : [])]
     if (points.length > 0) m.fitBounds(boundsOf(points), { padding: 32, maxZoom: 12, duration: 600 })
-  }, [ready, range.max])
+  }, [ready, fitKey])
 
   // The canvas changes size when the map is enlarged
   useEffect(() => {
@@ -210,7 +220,7 @@ export const GroupMap = ({
           {expanded ? t.map.collapse : t.map.expand}
         </button>
         <ul className="map-legend">
-          {home && <li><Icon kind="home" />{t.home}</li>}
+          {home && <li><Icon kind={homeIcon} />{centreLabel}</li>}
           {kinds.map(kind => <li key={kind}><Icon kind={kind} />{t.map.kinds[kind]}</li>)}
           {contacts.length > 0 && <li><span className="key network" />{t.map.contacts}</li>}
           <li><span className="key group">A</span>{t.map.groups}</li>

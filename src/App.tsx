@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { LISTINGS, type DataSource } from './data/listings'
+import { CATALOGUE, LISTINGS, type DataSource } from './data/listings'
 import { canAccess, type User } from './lib/auth'
 import { mockExtractor, type Extraction, type ExtractionInput } from './lib/extraction'
 import { logAccess, type AccessReason, type AuditEntry } from './lib/registry'
@@ -10,6 +10,7 @@ import { Processing } from './views/Processing'
 import { Results } from './views/Results'
 import { SelfService } from './views/SelfService'
 import { StatusBar } from './views/StatusBar'
+import { TreatmentBrowser } from './views/TreatmentBrowser'
 
 type Screen =
   | { name: 'start' }
@@ -70,9 +71,13 @@ export const App = () => {
       </header>
 
       {!user && <Login onLogin={u => { setUser(u); setSyncedAt(new Date()) }} />}
-      {user?.role === 'professional' && screen.name === 'start' && <PatientSearch user={user} onOpen={open} />}
-      {user && user.role !== 'professional' && screen.name === 'start' && (
-        <SelfService user={user} onStart={input => open(input, user.role === 'proxy' ? 'proxy' : 'own')} />
+      {user && screen.name === 'start' && (
+        <main className="content wide home">
+          {user.role === 'professional'
+            ? <PatientSearch user={user} onOpen={open} />
+            : <SelfService user={user} onStart={input => open(input, user.role === 'proxy' ? 'proxy' : 'own')} />}
+          <TreatmentBrowser groups={CATALOGUE[dataSource]} referrer={user.name} />
+        </main>
       )}
       {user && screen.name === 'processing' && (
         <Processing input={screen.input} extractor={mockExtractor} onDone={onExtracted} />

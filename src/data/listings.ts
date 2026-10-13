@@ -1,6 +1,6 @@
 import { UNKNOWN_ELIGIBILITY } from '../lib/eligibility'
 import { GROUPS, type GroupListing } from './groups'
-import { TREATMENTS, type TreatmentKind, type TreatmentListing, type TreatmentLocation } from './treatments'
+import { RETRIEVED_AT, TREATMENTS, type TreatmentKind, type TreatmentListing, type TreatmentLocation } from './treatments'
 
 export type DataSource = 'synthetic' | 'real'
 
@@ -53,6 +53,8 @@ const toListing = (t: TreatmentListing, location: TreatmentLocation | null, id: 
       ...((location?.phone ?? t.contact.phone) && { phone: location?.phone ?? t.contact.phone }),
       ...(t.contact.email && { email: t.contact.email }),
     },
+    // The sources carry no publication dates; a listing counts as added when it was retrieved
+    addedAt: RETRIEVED_AT,
     booking: { type: 'external', system: hostname(t.contact.url), url: t.contact.url },
     // Sources publish no structured criteria; only the referral flag and the target group text
     eligibility: {
@@ -74,3 +76,6 @@ export const toGroupListings = (t: TreatmentListing): GroupListing[] => {
 export const REAL_GROUPS: GroupListing[] = TREATMENTS.filter(t => t.tags.length > 0).flatMap(toGroupListings)
 
 export const LISTINGS: Record<DataSource, GroupListing[]> = { synthetic: GROUPS, real: REAL_GROUPS }
+
+// Browsing needs no tags, so the catalogue also lists the untagged services (psychosis, eating disorders, ...)
+export const CATALOGUE: Record<DataSource, GroupListing[]> = { synthetic: GROUPS, real: TREATMENTS.flatMap(toGroupListings) }

@@ -6,72 +6,16 @@ import type { User } from '../lib/auth'
 import type { Extraction } from '../lib/extraction'
 import { ageAt } from '../lib/hetu'
 import { applyFilters, guessFilters, type Filters } from '../lib/filters'
-import { rankGroups, type Match } from '../lib/match'
+import { rankGroups } from '../lib/match'
 import { rankLabel } from '../lib/rank'
-import { formatFee, useT, type Lang } from '../i18n'
+import { useT, type Lang } from '../i18n'
 import { BookingDialog } from './BookingDialog'
 import { FilterBar } from './FilterBar'
+import { GroupCard } from './GroupCard'
 import { GroupMap } from './GroupMap'
-import { distanceText, languagesText, scheduleLine, seatsText } from './format'
 import { PatientBanner } from './PatientBanner'
 
 const label = (id: HashtagId, lang: Lang) => HASHTAGS[id][lang]
-
-const Tag = ({ id, highlight }: { id: HashtagId; highlight?: boolean }) => {
-  const { lang } = useT()
-  return <span className={highlight ? 'tag matched' : 'tag'}>{label(id, lang)}</span>
-}
-
-const GroupCard = ({
-  match,
-  rank,
-  reserved,
-  active,
-  cardRef,
-  onHover,
-  onReserve,
-}: {
-  match: Match
-  rank: string
-  reserved: boolean
-  active: boolean
-  cardRef: (el: HTMLElement | null) => void
-  onHover: () => void
-  onReserve: () => void
-}) => {
-  const { t, lang } = useT()
-  const { group, matched, distanceKm, seatsLeft } = match
-  const className = ['card', seatsLeft === 0 && 'full', active && 'active'].filter(Boolean).join(' ')
-  return (
-    <article ref={cardRef} className={className} onMouseEnter={onHover}>
-      <div className="card-rank">{rank}</div>
-      <div className="card-body">
-        <header>
-          <h3>{group.name}</h3>
-          {/* <span className="fit" title={t.fit}>{Math.round(score * 100)} % {t.fit}</span> */}
-        </header>
-        <p className="organiser">{group.organiser}</p>
-        <div className="facts">
-          {group.address && <span>{group.address}</span>}
-          <span>{distanceText(group, distanceKm, lang)}</span>
-          <span>{formatFee(group.fee, lang)}</span>
-        </div>
-        <div className="facts muted">
-          <span>{group.method}</span>
-          {scheduleLine(group, lang) && <span>{scheduleLine(group, lang)}</span>}
-          <span>{languagesText(group)}</span>
-        </div>
-        <div className="tags">
-          {group.tags.map(id => <Tag key={id} id={id} highlight={matched.includes(id)} />)}
-        </div>
-      </div>
-      <div className="card-side">
-        <span className={seatsLeft === 0 ? 'seats none' : 'seats'}>{reserved ? t.reserved : seatsText(match, lang)}</span>
-        <button className="primary" onClick={onReserve}>{t.moreInfo}</button>
-      </div>
-    </article>
-  )
-}
 
 export const Results = ({
   patient,
@@ -147,7 +91,7 @@ export const Results = ({
                 active={m.group.id === activeId}
                 cardRef={el => { if (el) cardRefs.current.set(m.group.id, el); else cardRefs.current.delete(m.group.id) }}
                 onHover={() => setActiveId(m.group.id)}
-                onReserve={() => setBookingFor(m.group.id)} />
+                onInfo={() => setBookingFor(m.group.id)} />
             ))}
           </div>
         </div>

@@ -45,7 +45,8 @@ export const BookingDialog = ({
 }: {
   match: Match
   referrer: string
-  onReserved: (reference: string) => void
+  // Without it the dialog only informs: browsing has no patient to reserve a seat for
+  onReserved?: (reference: string) => void
   onClose: () => void
 }) => {
   const { t, lang } = useT()
@@ -55,7 +56,7 @@ export const BookingDialog = ({
   const [status, setStatus] = useState<Status>({ kind: 'idle' })
 
   const reserve = async () => {
-    if (booking.type !== 'integrated') return
+    if (booking.type !== 'integrated' || !onReserved) return
     setStatus({ kind: 'pending' })
     try {
       const { reference } = await ADAPTERS[booking.adapter]({ groupId: group.id, referrer })
@@ -93,6 +94,7 @@ export const BookingDialog = ({
       )}
 
       {booking.type === 'contact' && <p className="hint">{t.booking.contactOnly}</p>}
+      {booking.type === 'integrated' && !onReserved && <p className="hint">{t.browser.reserveViaSearch}</p>}
       {status.kind === 'done' && (
         <p className="success">{t.booking.done} <strong className="mono">{status.reference}</strong></p>
       )}
@@ -110,7 +112,9 @@ export const BookingDialog = ({
           </>
         )}
 
-        {booking.type === 'integrated' && (status.kind === 'done' || status.kind === 'failed'
+        {booking.type === 'integrated' && !onReserved && <button className="primary" onClick={onClose}>{t.close}</button>}
+
+        {booking.type === 'integrated' && onReserved && (status.kind === 'done' || status.kind === 'failed'
           ? <button className="primary" onClick={onClose}>{t.close}</button>
           : (
             <>

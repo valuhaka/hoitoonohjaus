@@ -36,6 +36,8 @@ export type GroupListing = {
   contact: Contact
   booking: BookingConfig
   eligibility: Eligibility
+  // Date the listing entered the catalogue (ISO), for the newest-treatments list
+  addedAt: string | null
 }
 
 // Coordinates are WGS84 (lat/lon) and cover the LUVN and HUS areas
@@ -46,6 +48,7 @@ const LUVN_BOOKING: BookingConfig = { type: 'integrated', system: 'LUVN ajanvara
 export const GROUPS: GroupListing[] = [
   {
     id: 'g01',
+    addedAt: '2026-08-18',
     name: 'Yksinäisyydestä yhteyteen',
     organiser: 'LUVN Aikuisten psykososiaaliset palvelut',
     method: 'Psykoedukatiivinen vertaisryhmä',
@@ -69,6 +72,7 @@ export const GROUPS: GroupListing[] = [
   },
   {
     id: 'g02',
+    addedAt: '2026-09-02',
     name: 'Masennuksen KKT-ryhmä',
     organiser: 'LUVN Aikuisten mielenterveyspalvelut, Leppävaara',
     method: 'Kognitiivinen käyttäytymisterapia (KKT)',
@@ -92,6 +96,7 @@ export const GROUPS: GroupListing[] = [
   },
   {
     id: 'g03',
+    addedAt: '2026-09-15',
     name: 'Ahdistuksen hallinta – ACT-ryhmä',
     organiser: 'LUVN Aikuisten mielenterveyspalvelut, Espoonlahti',
     method: 'Hyväksymis- ja omistautumisterapia (ACT)',
@@ -115,6 +120,7 @@ export const GROUPS: GroupListing[] = [
   },
   {
     id: 'g04',
+    addedAt: '2026-08-25',
     name: 'Unikoulu verkossa',
     organiser: 'LUVN Mielenterveys- ja päihdepalvelut',
     method: 'Unettomuuden KKT (KKT-I)',
@@ -138,6 +144,7 @@ export const GROUPS: GroupListing[] = [
   },
   {
     id: 'g05',
+    addedAt: '2026-09-29',
     name: 'Surusta selviytyminen',
     organiser: 'Kumppanuuskeskus Silta ry',
     method: 'Sururyhmä, ohjattu vertaistuki',
@@ -161,6 +168,7 @@ export const GROUPS: GroupListing[] = [
   },
   {
     id: 'g06',
+    addedAt: '2026-07-07',
     name: 'Seniorernas vardagsrum – Senioreiden olohuone',
     organiser: 'Föreningen Ankaret rf',
     method: 'Aktivoiva vertaisryhmä',
@@ -184,6 +192,7 @@ export const GROUPS: GroupListing[] = [
   },
   {
     id: 'g07',
+    addedAt: '2026-10-06',
     name: 'Nuorten aikuisten tunnetaitoryhmä',
     organiser: 'LUVN Nuorten aikuisten palvelut, Tapiola',
     method: 'DKT-pohjainen tunnetaitoryhmä',
@@ -207,6 +216,7 @@ export const GROUPS: GroupListing[] = [
   },
   {
     id: 'g08',
+    addedAt: '2026-09-08',
     name: 'Vakautusryhmä traumoista toipuville',
     organiser: 'LUVN Aikuisten mielenterveyspalvelut, Lohja',
     method: 'Traumatietoinen vakauttava ryhmä',
@@ -230,6 +240,7 @@ export const GROUPS: GroupListing[] = [
   },
   {
     id: 'g09',
+    addedAt: '2026-10-09',
     name: 'Voimavaroja työnhakuun',
     organiser: 'Mielikki ry',
     method: 'Voimavarakeskeinen ryhmä',
@@ -253,6 +264,7 @@ export const GROUPS: GroupListing[] = [
   },
   {
     id: 'g10',
+    addedAt: '2026-06-16',
     name: 'Kivun kanssa – Leva med smärta',
     organiser: 'LUVN Kipupoliklinikka, Hanko',
     method: 'Hyväksymis- ja omistautumisterapia (ACT)',
@@ -276,6 +288,7 @@ export const GROUPS: GroupListing[] = [
   },
   {
     id: 'g11',
+    addedAt: '2026-08-04',
     name: 'Paniikkihäiriön ryhmähoito',
     organiser: 'HUS Psykiatria, Psykiatriakeskus',
     method: 'Kognitiivinen käyttäytymisterapia (KKT)',
@@ -299,6 +312,7 @@ export const GROUPS: GroupListing[] = [
   },
   {
     id: 'g12',
+    addedAt: '2026-09-22',
     name: 'Sosiaalisen ahdistuksen KKT-ryhmä',
     organiser: 'HUS Psykiatria, Nuorisopsykiatria',
     method: 'Kognitiivinen käyttäytymisterapia (KKT)',
@@ -322,6 +336,7 @@ export const GROUPS: GroupListing[] = [
   },
   {
     id: 'g13',
+    addedAt: '2026-07-21',
     name: 'Traumaperäisen stressin ryhmä',
     organiser: 'HUS Psykiatria, Peijas',
     method: 'Traumafokusoitu ryhmähoito',
@@ -345,6 +360,7 @@ export const GROUPS: GroupListing[] = [
   },
   {
     id: 'g14',
+    addedAt: '2026-10-01',
     name: 'Päihteet ja mieliala',
     organiser: 'HUS Psykiatria, Jorvi',
     method: 'Motivoiva ryhmähoito',
@@ -368,6 +384,7 @@ export const GROUPS: GroupListing[] = [
   },
   {
     id: 'g15',
+    addedAt: '2026-10-12',
     name: 'Jännittäjien ryhmä 13–17-vuotiaille',
     organiser: 'LUVN Lasten ja nuorten mielenterveyspalvelut, Karkkila',
     method: 'Kognitiivis-behavioraalinen ryhmä (KKT)',

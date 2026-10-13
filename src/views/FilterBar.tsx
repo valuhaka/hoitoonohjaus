@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import {
   DISTANCE_SCALE, FEE_SCALE, isActive, NO_FILTERS, type FilterGuess, type Filters, type Range, type TimeOfDay,
 } from '../lib/filters'
@@ -51,14 +51,19 @@ const RangeSlider = ({
 const toNumber = (value: string) => (value === '' ? null : Number(value))
 const fromNumber = (value: number | null) => (value === null ? '' : String(value))
 
+const NO_GUESS: FilterGuess = { filters: NO_FILTERS, reasons: {} }
+
+// `children` go first in the bar, e.g. the browser's reference point and sort order
 export const FilterBar = ({
   filters,
-  guess,
+  guess = NO_GUESS,
   onChange,
+  children,
 }: {
   filters: Filters
-  guess: FilterGuess
+  guess?: FilterGuess
   onChange: (filters: Filters) => void
+  children?: ReactNode
 }) => {
   const { t } = useT()
   const f = t.filters
@@ -73,6 +78,7 @@ export const FilterBar = ({
 
   return (
     <div className="filters">
+      {children}
       <label {...suggested('startsWithinDays')}>
         {f.start}
         <select value={fromNumber(filters.startsWithinDays)}

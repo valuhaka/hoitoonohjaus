@@ -13,31 +13,29 @@ export const SelfService = ({ user, onStart }: { user: User; onStart: (input: Ex
   const patient = patients.find(p => p.hetu === hetu)
 
   return (
-    <main className="content">
-      <section className="panel self-service">
-        <h1>{user.role === 'proxy' ? t.proxyTitle : t.selfTitle}</h1>
-        {user.role === 'proxy' && (
-          <label>
-            {t.proxyChoose}
-            <select value={hetu} onChange={e => setHetu(e.target.value)}>
-              {patients.map(p => <option key={p.hetu} value={p.hetu}>{p.lastName}, {p.firstNames}</option>)}
-            </select>
-          </label>
-        )}
-        {patient && (
-          <>
-            <PatientBanner patient={patient} />
-            <DataSources key={patient.hetu} patient={patient} role={user.role}
-              actions={input => (
-                <div className="actions">
-                  <button className="primary" disabled={!input} onClick={() => input && onStart(input)}>
-                    {t.findGroups}
-                  </button>
-                </div>
-              )} />
-          </>
-        )}
-      </section>
-    </main>
+    <section className="panel self-service">
+      <h1>{user.role === 'proxy' ? t.proxyTitle : t.selfTitle}</h1>
+      {user.role === 'proxy' && (
+        <label>
+          {t.proxyChoose}
+          <select value={hetu} onChange={e => setHetu(e.target.value)}>
+            {patients.map(p => <option key={p.hetu} value={p.hetu}>{p.lastName}, {p.firstNames}</option>)}
+          </select>
+        </label>
+      )}
+      {patient && (
+        <>
+          <PatientBanner patient={patient} />
+          <DataSources key={patient.hetu} patient={patient} role={user.role}
+            actions={input => (
+              <div className="actions">
+                <button className="primary" disabled={!input} onClick={() => input && onStart(input)}>
+                  {t.findGroups}
+                </button>
+              </div>
+            )} />
+        </>
+      )}
+    </section>
   )
 }

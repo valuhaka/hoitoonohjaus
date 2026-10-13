@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Psyykkeri – Treatment browser</title>
+  <link rel="stylesheet" href="../src/styles.css" />
+</head>
+<body>
+<main class="content wide home">
+  <section class="panel search-panel">
+    <p class="hint">Search row (see patient-search.html).</p>
+  </section>
+
+  <section class="browser">
+    <h2>Selaa hoitoja</h2>
+    <div class="browser-layout">
+      <div class="browser-main">
+        <div class="filters">
+          <label>
+            Etäisyys paikasta
+            <select><option>Espoo</option><option selected>Lohja</option><option>Vihti</option></select>
+          </label>
+          <label>
+            Järjestys
+            <select>
+              <option selected>Lähin ensin</option><option>Kaukaisin ensin</option><option>Edullisin ensin</option>
+              <option>Kallein ensin</option><option>Aakkosjärjestys A–Ö</option><option>Aakkosjärjestys Ö–A</option>
+            </select>
+          </label>
+          <p class="hint">The rest of the bar as in filters.html.</p>
+        </div>
+        <div class="cards">
+          <p class="hint">Cards with letters A, B, … sorted by the chosen order (see group-card.html).</p>
+        </div>
+      </div>
+
+      <aside class="map-panel" aria-label="Ryhmät kartalla">
+        <p class="hint">Map (see map.html): reference point instead of home, no care network.</p>
+      </aside>
+
+      <section class="newest">
+        <h2>Uudet hoidot</h2>
+        <div class="cards">
+          <article class="card unranked">
+            <div class="card-body">
+              <header>
+                <h3>Jännittäjien ryhmä 13–17-vuotiaille</h3>
+                <span class="added">Lisätty 12.10.2026</span>
+              </header>
+              <p class="organiser">LUVN Lasten ja nuorten mielenterveyspalvelut, Karkkila</p>
+              <div class="facts"><span>Valtatie 20, Karkkila</span><span>33 km</span><span>Maksuton</span></div>
+            </div>
+            <div class="card-side">
+              <span class="seats">5 vapaata paikkaa</span>
+              <button class="primary">Lisätietoja</button>
+            </div>
+          </article>
+          <p class="hint">Other newest cards keep their letter (see group-card.html).</p>
+        </div>
+        <button class="secondary wide" aria-expanded="false">Näytä lisää</button>
+      </section>
+    </div>
+  </section>
+</main>
+</body>
+</html>

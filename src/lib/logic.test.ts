@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { GROUPS } from '../data/groups'
 import { HASHTAG_IDS } from '../data/hashtags'
-import { REAL_GROUPS } from '../data/listings'
+import { CATALOGUE, REAL_GROUPS } from '../data/listings'
 import { PATIENTS } from '../data/patients'
 import { SOURCE_URLS, SOURCES_WITHOUT_LISTINGS, TREATMENTS } from '../data/treatments'
 import { ADAPTERS } from './booking'
@@ -14,7 +14,9 @@ import { rankLabel } from './rank'
 import { searchPatients } from './registry'
 import { ringPolygon } from './shapes'
 import { ageAt, isValidHetu } from './hetu'
-import { fitScore, idfWeights, rankGroups } from './match'
+import { browseGroups, fitScore, idfWeights, rankGroups } from './match'
+import { DEFAULT_PLACE } from './places'
+import { newestFirst, SORT_ORDERS, sortMatches } from './sort'
 
 const NOW = new Date('2026-10-13T12:00:00Z')
 
@@ -304,5 +306,43 @@ describe('real listings in matching', () => {
   })
   it('links every real listing to the organiser', () => {
     REAL_GROUPS.forEach(g => expect(g.booking.type).toBe('external'))
+  })
+})
+
+describe('browsing', () => {
+  const from = DEFAULT_PLACE.coords
+  const all = browseGroups(from, GROUPS)
+  it('lists every listing without a fit score or personal details', () => {
+    expect(all).toHaveLength(GROUPS.length)
+    all.forEach(m => { expect(m.score).toBe(0); expect(m.matched).toEqual([]) })
+  })
+  it('includes the untagged real services and keeps one site per service', () => {
+    const real = browseGroups(from, CATALOGUE.real)
+    expect(new Set(real.map(m => m.group.serviceId)).size).toBe(real.length)
+    expect(real.length).toBe(TREATMENTS.length)
+  })
+  it('sorts by distance and fee with unknown values last in both directions', () => {
+    const real = browseGroups(from, CATALOGUE.real)
+    const distances = (order: 'nearest' | 'farthest') => sortMatches(real, order, 'fi').map(m => m.distanceKm)
+    const near = distances('nearest')
+    const far = distances('farthest')
+    const known = (xs: (number | null)[]) => xs.filter((x): x is number => x !== null)
+    expect(known(near)).toEqual([...known(near)].sort((a, b) => a - b))
+    expect(known(far)).toEqual([...known(far)].sort((a, b) => b - a))
+    expect(near.at(-1)).toBeNull()
+    expect(far.at(-1)).toBeNull()
+    const fees = sortMatches(all, 'priciest', 'fi').map(m => m.group.fee ?? -1)
+    expect(fees).toEqual([...fees].sort((a, b) => b - a))
+  })
+  it('sorts names with Finnish collation and keeps every listing in every order', () => {
+    const names = sortMatches(all, 'nameAsc', 'fi').map(m => m.group.name)
+    expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b, 'fi')))
+    expect(sortMatches(all, 'nameDesc', 'fi').map(m => m.group.name)).toEqual([...names].reverse())
+    SORT_ORDERS.forEach(order => expect(sortMatches(all, order, 'fi')).toHaveLength(all.length))
+  })
+  it('lists the most recently added first', () => {
+    const dates = newestFirst(all, 'fi').map(m => m.group.addedAt)
+    expect(dates[0]).toBe('2026-10-12')
+    expect(dates).toEqual([...dates].sort().reverse())
   })
 })
