@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { GROUPS } from '../data/groups'
 import { HASHTAG_IDS } from '../data/hashtags'
+import { REAL_GROUPS } from '../data/listings'
 import { PATIENTS } from '../data/patients'
 import { SOURCE_URLS, SOURCES_WITHOUT_LISTINGS, TREATMENTS } from '../data/treatments'
 import { ADAPTERS } from './booking'
@@ -69,7 +70,7 @@ describe('filters', () => {
   })
   it('filters by start date', () => {
     const within = applyFilters(all, { ...NO_FILTERS, startsWithinDays: 14 }, NOW)
-    expect(within.every(m => m.group.startDate <= '2026-10-27')).toBe(true)
+    expect(within.every(m => m.group.startDate !== null && m.group.startDate <= '2026-10-27')).toBe(true)
   })
 })
 
@@ -135,5 +136,48 @@ describe('real treatment catalogue', () => {
     TREATMENTS.forEach(({ vacancy: v }) => {
       if (v.capacity !== null && v.enrolled !== null) expect(v.enrolled).toBeLessThanOrEqual(v.capacity)
     })
+  })
+})
+
+describe('real listings in matching', () => {
+  const home = { lat: 60.2297, lon: 24.8837 } // Haaga, Helsinki
+  const byService = (id: string) => REAL_GROUPS.filter(g => g.serviceId === id)
+
+  it('lists a multi-site service once per mapped location', () => {
+    expect(byService('hki-mieppi')).toHaveLength(4)
+    expect(new Set(REAL_GROUPS.map(g => g.id)).size).toBe(REAL_GROUPS.length)
+  })
+  it('offers only the nearest site of a service', () => {
+    const ranked = rankGroups(['stressi'], home, REAL_GROUPS)
+    const mieppi = ranked.filter(m => m.group.serviceId === 'hki-mieppi')
+    expect(mieppi).toHaveLength(1)
+    expect(mieppi[0]!.group.address).toContain('Hopeatie 6')
+  })
+  it('counts a multi-site service once in the tag weights', () => {
+    const once = idfWeights(REAL_GROUPS.filter(g => !g.id.includes('@') || g.id.endsWith('@0')))
+    expect(idfWeights(REAL_GROUPS).get('masennus')).toBeCloseTo(once.get('masennus')!)
+  })
+  it('treats a group marked full as having no seats and ranks it last', () => {
+    const ranked = rankGroups(['ero'], home, REAL_GROUPS)
+    const full = ranked.find(m => m.group.id === 'ms-eroryhma-pks-1')!
+    expect(full.seatsLeft).toBe(0)
+    expect(ranked.at(-1)!.seatsLeft).toBe(0)
+    expect(ranked.find(m => m.group.id === 'ms-eetu')!.seatsLeft).toBeNull()
+  })
+  it('never filters a listing out on values the organiser does not publish', () => {
+    const ranked = rankGroups(['masennus', 'ahdistus', 'paihteet'], home, REAL_GROUPS)
+    const luvn = ranked.find(m => m.group.serviceId === 'luvn-mtp')!
+    expect(luvn.group.fee).toBeNull()
+    const strict = { ...NO_FILTERS, maxFee: 0, timeOfDay: 'evening' as const, startsWithinDays: 14 }
+    expect(applyFilters([luvn], strict, NOW)).toHaveLength(1)
+  })
+  it('keeps groups announced for later out of the start filter', () => {
+    const ranked = rankGroups(['traumat'], home, REAL_GROUPS)
+    const later = ranked.filter(m => m.group.status === 'applyLater')
+    expect(later.length).toBeGreaterThan(0)
+    expect(applyFilters(later, { ...NO_FILTERS, startsWithinDays: 31 }, NOW)).toHaveLength(0)
+  })
+  it('links every real listing to the organiser', () => {
+    REAL_GROUPS.forEach(g => expect(g.booking.type).toBe('external'))
   })
 })

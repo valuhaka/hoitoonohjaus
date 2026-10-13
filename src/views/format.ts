@@ -1,10 +1,28 @@
 import type { GroupListing } from '../data/groups'
-import { DICTS, formatTime, type Lang } from '../i18n'
+import type { Match } from '../lib/match'
+import { DICTS, formatDate, formatTime, type Lang } from '../i18n'
 
-export const scheduleText = (group: GroupListing, lang: Lang) =>
-  `${DICTS[lang].weekdays[group.weekday - 1]} ${formatTime(group.startTime, lang)}–${formatTime(group.endTime, lang)}`
+const weeklySlot = ({ weekday, startTime, endTime }: GroupListing, lang: Lang) =>
+  weekday !== null && startTime !== null && endTime !== null
+    ? `${DICTS[lang].weekdays[weekday - 1]} ${formatTime(startTime, lang)}–${formatTime(endTime, lang)}`
+    : null
 
-export const distanceText = (distanceKm: number | null, lang: Lang) =>
-  distanceKm === null ? DICTS[lang].remote : DICTS[lang].km(distanceKm)
+export const scheduleText = (group: GroupListing, lang: Lang) => weeklySlot(group, lang) ?? group.scheduleNote ?? ''
+
+// Start date, weekly slot and session count, leaving out whatever the organiser does not publish
+export const scheduleLine = (group: GroupListing, lang: Lang, withSessions = false) =>
+  [
+    group.startDate && `${DICTS[lang].starts} ${formatDate(group.startDate, lang)}`,
+    scheduleText(group, lang),
+    withSessions && group.sessions !== null && DICTS[lang].sessions(group.sessions),
+  ].filter(Boolean).join(' · ')
+
+export const distanceText = (group: GroupListing, distanceKm: number | null, lang: Lang) =>
+  distanceKm !== null
+    ? DICTS[lang].km(distanceKm)
+    : group.format === 'remote' ? DICTS[lang].remote : DICTS[lang].locationUnknown
+
+export const seatsText = ({ group, seatsLeft }: Match, lang: Lang) =>
+  seatsLeft !== null ? DICTS[lang].seatsLeft(seatsLeft) : DICTS[lang].enrolment[group.status ?? 'unknown']
 
 export const languagesText = (group: GroupListing) => group.languages.join(' / ').toUpperCase()

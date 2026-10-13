@@ -7,7 +7,7 @@ export type BookingConfig =
   | { type: 'external'; system: string; url: string }
   | { type: 'integrated'; system: string; adapter: AdapterId }
 
-export type Contact = { name: string; role: string; phone: string; email: string }
+export type Contact = { name?: string; role?: string; phone?: string; email?: string }
 
 // Only what the booking system needs to hold a seat. Patient data travels in the referral.
 export type ReservationRequest = { groupId: string; referrer: string }

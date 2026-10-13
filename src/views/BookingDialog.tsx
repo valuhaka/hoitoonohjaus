@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { ADAPTERS } from '../lib/booking'
 import type { Match } from '../lib/match'
-import { formatDate, formatFee, useT } from '../i18n'
-import { distanceText, languagesText, scheduleText } from './format'
+import { formatFee, useT } from '../i18n'
+import { distanceText, languagesText, scheduleLine, seatsText } from './format'
 import { Modal } from './Modal'
 
 type Status =
@@ -24,6 +24,7 @@ export const BookingDialog = ({
 }) => {
   const { t, lang } = useT()
   const { group, distanceKm, seatsLeft } = match
+  const schedule = scheduleLine(group, lang, true)
   const { booking, contact } = group
   const [status, setStatus] = useState<Status>({ kind: 'idle' })
 
@@ -45,21 +46,23 @@ export const BookingDialog = ({
 
       <dl className="details">
         <dt>{t.booking.method}</dt><dd>{group.method}</dd>
-        <dt>{t.booking.location}</dt><dd>{group.address} · {distanceText(distanceKm, lang)}</dd>
-        <dt>{t.booking.schedule}</dt>
-        <dd>{t.starts} {formatDate(group.startDate, lang)} · {scheduleText(group, lang)} · {t.sessions(group.sessions)}</dd>
+        <dt>{t.booking.location}</dt>
+        <dd>{[group.address, distanceText(group, distanceKm, lang)].filter(Boolean).join(' · ')}</dd>
+        {schedule && <><dt>{t.booking.schedule}</dt><dd>{schedule}</dd></>}
         <dt>{t.booking.languages}</dt><dd>{languagesText(group)}</dd>
         <dt>{t.booking.cost}</dt><dd>{formatFee(group.fee, lang)}</dd>
-        <dt>{t.booking.seats}</dt><dd>{t.seatsLeft(seatsLeft)}</dd>
+        <dt>{t.booking.seats}</dt><dd>{seatsText(match, lang)}</dd>
         {booking.type !== 'contact' && <><dt>{t.booking.system}</dt><dd>{booking.system}</dd></>}
       </dl>
 
-      <section className="contact">
-        <h3>{t.booking.contact}</h3>
-        <p><strong>{contact.name}</strong>, {contact.role}</p>
-        <p><a href={`tel:${contact.phone.replace(/\s/g, '')}`}>{contact.phone}</a></p>
-        <p><a href={`mailto:${contact.email}`}>{contact.email}</a></p>
-      </section>
+      {(contact.name || contact.phone || contact.email) && (
+        <section className="contact">
+          <h3>{t.booking.contact}</h3>
+          {contact.name && <p><strong>{contact.name}</strong>{contact.role && `, ${contact.role}`}</p>}
+          {contact.phone && <p><a href={`tel:${contact.phone.replace(/\s/g, '')}`}>{contact.phone}</a></p>}
+          {contact.email && <p><a href={`mailto:${contact.email}`}>{contact.email}</a></p>}
+        </section>
+      )}
 
       {booking.type === 'contact' && <p className="hint">{t.booking.contactOnly}</p>}
       {status.kind === 'done' && (

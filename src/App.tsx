@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { LISTINGS, type DataSource } from './data/listings'
 import type { Patient } from './data/patients'
 import { mockExtractor, type Extraction } from './lib/extraction'
 import { logAccess, type AccessReason, type AuditEntry } from './lib/registry'
@@ -16,6 +17,7 @@ type Screen =
 
 export const App = () => {
   const [lang, setLang] = useState<Lang>('fi')
+  const [dataSource, setDataSource] = useState<DataSource>('synthetic')
   const [user, setUser] = useState<User | null>(null)
   const [syncedAt, setSyncedAt] = useState(() => new Date())
   const [screen, setScreen] = useState<Screen>({ name: 'search' })
@@ -48,7 +50,11 @@ export const App = () => {
             <strong>{t.appName}</strong>
             <small>{t.org}</small>
           </div>
-          <span className="badge demo">{t.demoBadge}</span>
+          <button className={`badge data-switch ${dataSource}`} role="switch" aria-checked={dataSource === 'real'}
+            title={t.dataSource.toggle} onClick={() => setDataSource(s => (s === 'real' ? 'synthetic' : 'real'))}>
+            <span className="switch-track" aria-hidden="true"><span className="switch-knob" /></span>
+            {t.dataSource[dataSource]}
+          </button>
         </div>
         <div className="topbar-right">
           <div className="lang-switch" role="group" aria-label="Kieli / Språk / Language">
@@ -69,7 +75,7 @@ export const App = () => {
         <Processing patient={screen.patient} extractor={mockExtractor} onDone={onExtracted} />
       )}
       {user && screen.name === 'results' && (
-        <Results patient={screen.patient} extraction={screen.extraction} referrer={user.name}
+        <Results patient={screen.patient} extraction={screen.extraction} groups={LISTINGS[dataSource]} referrer={user.name}
           onNewSearch={() => setScreen({ name: 'search' })} />
       )}
       {user && <StatusBar user={user} syncedAt={syncedAt} />}

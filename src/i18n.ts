@@ -8,7 +8,11 @@ const LOCALES: Record<Lang, string> = { fi: 'fi-FI', sv: 'sv-FI', en: 'en-GB' }
 const fi = {
   appName: 'Psyykkeri',
   org: 'Länsi-Uudenmaan hyvinvointialue',
-  demoBadge: 'DEMO · synteettinen data',
+  dataSource: {
+    synthetic: 'DEMO · synteettinen data',
+    real: 'Todelliset palvelut',
+    toggle: 'Vaihda synteettisten demoryhmien ja todellisten palvelujen välillä. Potilaat ovat aina synteettisiä.',
+  },
   loginTitle: 'Kirjaudu sisään',
   loginCard: 'Kirjaudu ammattikortilla',
   loginOr: 'tai',
@@ -50,6 +54,19 @@ const fi = {
   noFilteredMatches: 'Ei ryhmiä valituilla suodattimilla.',
   fit: 'sopivuus',
   remote: 'Etäryhmä',
+  locationUnknown: 'Paikka ei tiedossa',
+  feeUnknown: 'Hinta ei tiedossa',
+  enrolment: {
+    dropIn: 'Ilman ilmoittautumista',
+    continuous: 'Jatkuva',
+    applyNow: 'Haku auki',
+    applyLater: 'Haku myöhemmin',
+    registrationClosed: 'Ilmoittautuminen päättynyt',
+    inProgress: 'Ryhmä käynnissä',
+    full: 'Täynnä',
+    referral: 'Lähetteellä',
+    unknown: 'Paikkatilanne ei tiedossa',
+  },
   km: (n: number) => `${n.toFixed(0)} km`,
   seatsLeft: (n: number) => (n === 0 ? 'Täynnä' : `${n} vapaata paikkaa`),
   starts: 'Alkaa',
@@ -95,7 +112,7 @@ const fi = {
     languages: 'Kielet',
     cost: 'Hinta',
     seats: 'Paikkoja',
-    contact: 'Yhteyshenkilö',
+    contact: 'Yhteystiedot',
     contactOnly: 'Sovi paikasta suoraan yhteyshenkilön kanssa.',
     openExternal: (system: string) => `Avaa: ${system}`,
     system: 'Varausjärjestelmä',
@@ -111,7 +128,11 @@ type Dict = typeof fi
 const sv: Dict = {
   appName: 'Psyykkeri',
   org: 'Västra Nylands välfärdsområde',
-  demoBadge: 'DEMO · syntetiska data',
+  dataSource: {
+    synthetic: 'DEMO · syntetiska data',
+    real: 'Verkliga tjänster',
+    toggle: 'Växla mellan syntetiska demogrupper och verkliga tjänster. Patienterna är alltid syntetiska.',
+  },
   loginTitle: 'Logga in',
   loginCard: 'Logga in med yrkeskort',
   loginOr: 'eller',
@@ -153,6 +174,19 @@ const sv: Dict = {
   noFilteredMatches: 'Inga grupper med de valda filtren.',
   fit: 'matchning',
   remote: 'Distansgrupp',
+  locationUnknown: 'Plats okänd',
+  feeUnknown: 'Pris okänt',
+  enrolment: {
+    dropIn: 'Utan anmälan',
+    continuous: 'Fortlöpande',
+    applyNow: 'Ansökan öppen',
+    applyLater: 'Ansökan senare',
+    registrationClosed: 'Anmälan stängd',
+    inProgress: 'Gruppen pågår',
+    full: 'Fullsatt',
+    referral: 'Med remiss',
+    unknown: 'Platsläget okänt',
+  },
   km: (n: number) => `${n.toFixed(0)} km`,
   seatsLeft: (n: number) => (n === 0 ? 'Fullsatt' : `${n} lediga platser`),
   starts: 'Börjar',
@@ -198,7 +232,7 @@ const sv: Dict = {
     languages: 'Språk',
     cost: 'Pris',
     seats: 'Platser',
-    contact: 'Kontaktperson',
+    contact: 'Kontaktuppgifter',
     contactOnly: 'Kom överens om platsen direkt med kontaktpersonen.',
     openExternal: (system: string) => `Öppna: ${system}`,
     system: 'Bokningssystem',
@@ -212,7 +246,11 @@ const sv: Dict = {
 const en: Dict = {
   appName: 'Psyykkeri',
   org: 'Western Uusimaa Wellbeing Services County',
-  demoBadge: 'DEMO · synthetic data',
+  dataSource: {
+    synthetic: 'DEMO · synthetic data',
+    real: 'Real services',
+    toggle: 'Switch between synthetic demo groups and real services. Patients are always synthetic.',
+  },
   loginTitle: 'Sign in',
   loginCard: 'Sign in with professional card',
   loginOr: 'or',
@@ -254,6 +292,19 @@ const en: Dict = {
   noFilteredMatches: 'No groups match the selected filters.',
   fit: 'fit',
   remote: 'Remote group',
+  locationUnknown: 'Location not published',
+  feeUnknown: 'Price not published',
+  enrolment: {
+    dropIn: 'No registration needed',
+    continuous: 'Ongoing',
+    applyNow: 'Applications open',
+    applyLater: 'Applications later',
+    registrationClosed: 'Registration closed',
+    inProgress: 'Group in progress',
+    full: 'Full',
+    referral: 'By referral',
+    unknown: 'Seats not published',
+  },
   km: (n: number) => `${n.toFixed(0)} km`,
   seatsLeft: (n: number) => (n === 0 ? 'Full' : `${n} seats left`),
   starts: 'Starts',
@@ -299,7 +350,7 @@ const en: Dict = {
     languages: 'Languages',
     cost: 'Cost',
     seats: 'Seats',
-    contact: 'Contact person',
+    contact: 'Contact details',
     contactOnly: 'Arrange the seat directly with the contact person.',
     openExternal: (system: string) => `Open: ${system}`,
     system: 'Booking system',
@@ -315,8 +366,10 @@ export const DICTS: Record<Lang, Dict> = { fi, sv, en }
 export const formatDate = (iso: string, lang: Lang) =>
   new Date(iso).toLocaleDateString(LOCALES[lang])
 
-export const formatFee = (fee: number, lang: Lang) =>
-  fee === 0
+export const formatFee = (fee: number | null, lang: Lang) =>
+  fee === null
+    ? DICTS[lang].feeUnknown
+    : fee === 0
     ? DICTS[lang].free
     : `${new Intl.NumberFormat(LOCALES[lang], { style: 'currency', currency: 'EUR' }).format(fee)} / ${DICTS[lang].perSession}`
 

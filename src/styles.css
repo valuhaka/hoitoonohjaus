@@ -121,8 +121,17 @@ button.link:focus-visible, button.tag-remove:focus-visible, button.titlebar-clos
 
 /* Badges */
 .badge { font-size: 0.75rem; padding: 0.15rem 0.5rem; font-weight: 600; white-space: nowrap; }
-.badge.demo { background: var(--warning-bg); color: var(--warning); }
 .badge.danger { background: var(--danger-bg); color: var(--danger); }
+
+/* Data source switch: sits in the badge slot; demo data keeps the warning colours */
+button.data-switch { gap: 0.4rem; padding: 0.15rem 0.5rem; font-weight: 600; background: var(--warning-bg); color: var(--warning); }
+button.data-switch::before, button.data-switch::after { content: none; }
+button.data-switch.real { background: var(--tint); color: var(--green-dark); }
+button.data-switch:focus-visible { outline: 2px solid var(--green); outline-offset: 1px; }
+.switch-track { display: inline-flex; width: 1.5rem; height: 0.75rem; padding: 1px; border: 1px solid currentColor; }
+.switch-knob { width: 0.55rem; background: currentColor; transition: margin-left 0.15s; }
+.data-switch.real .switch-knob { margin-left: auto; }
+@media (prefers-reduced-motion: reduce) { .switch-knob { transition: none; } }
 
 /* Top bar */
 .topbar {

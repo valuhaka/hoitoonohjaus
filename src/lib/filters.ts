@@ -1,3 +1,4 @@
+import type { GroupListing } from '../data/groups'
 import type { ExtractedConstraint } from './extraction'
 import type { Match } from './match'
 
@@ -20,12 +21,18 @@ const DAY_MS = 24 * 60 * 60 * 1000
 export const isActive = (filters: Filters): boolean =>
   JSON.stringify(filters) !== JSON.stringify(NO_FILTERS)
 
-const startsInTime = (startDate: string, withinDays: number | null, now: Date) =>
-  withinDays === null || new Date(startDate).getTime() - now.getTime() <= withinDays * DAY_MS
+// Unknown values pass: a listing is only filtered out on what its organiser actually publishes.
+// The exception is a group whose next intake is announced for later without a date.
+const startsInTime = ({ startDate, status }: GroupListing, withinDays: number | null, now: Date) =>
+  withinDays === null ||
+  (startDate === null
+    ? status !== 'applyLater'
+    : new Date(startDate).getTime() - now.getTime() <= withinDays * DAY_MS)
 
-const atTimeOfDay = (startTime: string, timeOfDay: TimeOfDay) => {
+const atTimeOfDay = (startTime: string | null, timeOfDay: TimeOfDay) => {
+  if (timeOfDay === 'any' || startTime === null) return true
   const evening = Number(startTime.slice(0, 2)) >= EVENING_FROM_HOUR
-  return timeOfDay === 'any' || (timeOfDay === 'evening') === evening
+  return (timeOfDay === 'evening') === evening
 }
 
 // Remote groups have no distance and always pass the distance filter
@@ -35,9 +42,9 @@ const withinDistance = (distanceKm: number | null, max: number | null) =>
 export const applyFilters = (matches: Match[], filters: Filters, now: Date): Match[] =>
   matches.filter(
     ({ group, distanceKm }) =>
-      startsInTime(group.startDate, filters.startsWithinDays, now) &&
+      startsInTime(group, filters.startsWithinDays, now) &&
       atTimeOfDay(group.startTime, filters.timeOfDay) &&
-      (filters.maxFee === null || group.fee <= filters.maxFee) &&
+      (filters.maxFee === null || group.fee === null || group.fee <= filters.maxFee) &&
       withinDistance(distanceKm, filters.maxDistanceKm),
   )
 

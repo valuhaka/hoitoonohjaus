@@ -20,7 +20,7 @@ Single source of styling: `src/styles.css`. The React app imports it, and the st
 | `--text` / `--muted` | `#1A2A26` / `#52645F` | Body text / secondary text |
 | `--border` | `#D3E2DD` | All 1px borders |
 | `--danger` / `--danger-bg` | `#B42318` / `#FDECEA` | Errors, non-disclosure (turvakielto), full groups |
-| `--warning` / `--warning-bg` | `#7A5600` / `#FFF4D6` | Demo badge only |
+| `--warning` / `--warning-bg` | `#7A5600` / `#FFF4D6` | Data source switch while it shows synthetic data |
 
 **Contrast rule:** `#008D70` on white is about 4.2:1, which fails WCAG AA for normal-size text. Use it for lines, fills and large or decorative elements only. Green text and white-on-green buttons use `#015742` (about 8.6:1). `#015742` on `#89CABC` is about 4.6:1, which is fine for the bold rank number.
 
@@ -82,6 +82,12 @@ MapLibre GL with an offline Protomaps basemap (`public/maps/`, see README.md), s
 - **Patients with a non-disclosure order (turvakielto) get no home marker and no circle.**
 - Hovering a card highlights its pin, and clicking a pin scrolls to its card. Coordinates are WGS84.
 
+### Data source switch
+
+`.data-switch` sits next to the wordmark, in the slot of the former demo badge. It is a badge-sized `role="switch"` with a small rectangular track and knob, and switches the listings between the synthetic demo groups and the real services (`src/data/listings.ts`). Showing synthetic data it keeps the warning colours and reads "DEMO · synteettinen data"; showing real data it turns `--tint` with `--green-dark` text. The tooltip says that patients are always synthetic. It has no slanted button shape.
+
+Real listings often lack seat counts, start dates or prices. Cards then show the organiser's enrolment status ("Ryhmä käynnissä", "Täynnä", "Lähetteellä"), the free-text schedule, or "Hinta ei tiedossa"; unknown values never filter a listing out.
+
 ### Dialogs
 
 Every dialog is a window (`Modal.tsx`): a `.titlebar` with the title and a text-only close `×`, then `.modal-body`. Escape and clicking the backdrop also close it.
@@ -103,7 +109,7 @@ Each component has a static reference file in `design/` (open `design/index.html
 
 | File | React source | Key classes |
 |---|---|---|
-| `topbar.html` | `src/App.tsx` | `.topbar`, `.brand`, `.lang-switch`, `.segment`, `.badge.demo` |
+| `topbar.html` | `src/App.tsx` | `.topbar`, `.brand`, `.lang-switch`, `.segment`, `.data-switch` |
 | `login.html` | `src/views/Login.tsx` | `.login`, `.divider` |
 | `patient-search.html` | `src/views/PatientSearch.tsx` | `.search-row`, `.results-table` |
 | `access-dialog.html` | `src/views/PatientSearch.tsx`, `Modal.tsx` | `.modal`, `.titlebar`, `.modal-body`, `.identity` |

@@ -1,11 +1,15 @@
 import type { BookingConfig, Contact } from '../lib/booking'
 import type { Coords } from '../lib/geo'
 import type { HashtagId } from './hashtags'
+import type { EnrolmentStatus, Lang } from './treatments'
 
 export type GroupFormat = 'inPerson' | 'remote'
 
+// null means the organiser does not publish the value; unknown values never filter a listing out
 export type GroupListing = {
   id: string
+  // Set when one service is listed once per location; matching keeps the nearest one
+  serviceId?: string
   name: string
   organiser: string
   method: string
@@ -13,17 +17,21 @@ export type GroupListing = {
   address: string
   municipality: string
   coords: Coords | null
-  languages: ('fi' | 'sv' | 'en')[]
+  languages: Lang[]
   tags: HashtagId[]
-  capacity: number
-  enrolled: number
-  startDate: string
-  sessions: number
-  weekday: 1 | 2 | 3 | 4 | 5 | 6 | 7
-  startTime: string
-  endTime: string
+  capacity: number | null
+  enrolled: number | null
+  // What the organiser says about enrolment when seat counts are not published
+  status?: EnrolmentStatus
+  startDate: string | null
+  sessions: number | null
+  weekday: 1 | 2 | 3 | 4 | 5 | 6 | 7 | null
+  startTime: string | null
+  endTime: string | null
+  // Free-text schedule for listings without a single weekly slot
+  scheduleNote?: string
   // Euros per session, 0 = free of charge
-  fee: number
+  fee: number | null
   contact: Contact
   booking: BookingConfig
 }

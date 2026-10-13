@@ -1,15 +1,15 @@
 import { useMemo, useRef, useState } from 'react'
-import { GROUPS } from '../data/groups'
+import type { GroupListing } from '../data/groups'
 import { HASHTAGS, HASHTAG_IDS, type HashtagId } from '../data/hashtags'
 import type { Patient } from '../data/patients'
 import type { Extraction } from '../lib/extraction'
 import { applyFilters, guessFilters, type Filters } from '../lib/filters'
 import { rankGroups, type Match } from '../lib/match'
-import { formatDate, formatFee, useT, type Lang } from '../i18n'
+import { formatFee, useT, type Lang } from '../i18n'
 import { BookingDialog } from './BookingDialog'
 import { FilterBar } from './FilterBar'
 import { GroupMap } from './GroupMap'
-import { distanceText, languagesText, scheduleText } from './format'
+import { distanceText, languagesText, scheduleLine, seatsText } from './format'
 import { PatientBanner } from './PatientBanner'
 
 const label = (id: HashtagId, lang: Lang) => HASHTAGS[id][lang]
@@ -49,13 +49,13 @@ const GroupCard = ({
         </header>
         <p className="organiser">{group.organiser}</p>
         <div className="facts">
-          <span>{group.address}</span>
-          <span>{distanceText(distanceKm, lang)}</span>
+          {group.address && <span>{group.address}</span>}
+          <span>{distanceText(group, distanceKm, lang)}</span>
           <span>{formatFee(group.fee, lang)}</span>
         </div>
         <div className="facts muted">
           <span>{group.method}</span>
-          <span>{t.starts} {formatDate(group.startDate, lang)} · {scheduleText(group, lang)}</span>
+          {scheduleLine(group, lang) && <span>{scheduleLine(group, lang)}</span>}
           <span>{languagesText(group)}</span>
         </div>
         <div className="tags">
@@ -63,7 +63,7 @@ const GroupCard = ({
         </div>
       </div>
       <div className="card-side">
-        <span className={seatsLeft === 0 ? 'seats none' : 'seats'}>{t.seatsLeft(seatsLeft)}</span>
+        <span className={seatsLeft === 0 ? 'seats none' : 'seats'}>{seatsText(match, lang)}</span>
         <button className="primary" disabled={seatsLeft === 0 || reserved} onClick={onReserve}>
           {reserved ? t.reserved : t.reserve}
         </button>
@@ -75,10 +75,12 @@ const GroupCard = ({
 export const Results = ({
   patient,
   extraction,
+  groups,
   referrer,
   onNewSearch,
 }: {
   patient: Patient
+  groups: GroupListing[]
   extraction: Extraction
   referrer: string
   onNewSearch: () => void
@@ -95,9 +97,9 @@ export const Results = ({
   const evidence = new Map(extraction.tags.map(tag => [tag.id, tag.evidence]))
 
   const ranked = useMemo(() => {
-    const groups = GROUPS.map(g => (holds[g.id] ? { ...g, enrolled: g.enrolled + 1 } : g))
-    return rankGroups(tags, patient.homeCoords, groups)
-  }, [tags, patient, holds])
+    const held = groups.map(g => (holds[g.id] && g.enrolled !== null ? { ...g, enrolled: g.enrolled + 1 } : g))
+    return rankGroups(tags, patient.homeCoords, held)
+  }, [tags, patient, groups, holds])
   const visible = applyFilters(ranked, filters, new Date())
   const bookingMatch = ranked.find(m => m.group.id === bookingFor)
   const addable = HASHTAG_IDS.filter(id => !tags.includes(id))
