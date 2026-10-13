@@ -26,14 +26,14 @@ const toListing = (t: TreatmentListing, location: TreatmentLocation | null, id: 
   // A shared start time still tells day groups from evening groups
   const sharedStart = weekly.length > 0 && weekly.every(s => s.start === weekly[0]!.start) ? weekly[0]!.start : null
   const scheduleNote = location?.hours ?? t.timetable?.text
-  const remote = t.format === 'remote' || (t.format === 'hybrid' && !location?.coords)
   return {
     id,
     serviceId: t.id,
     name: t.name,
     organiser: t.organiser,
     method: KIND_LABELS[t.kind],
-    format: remote ? 'remote' : 'inPerson',
+    format: t.format,
+    genders: t.genders,
     address: location?.address ?? '',
     municipality: location?.municipality ?? '',
     coords: location?.coords ?? null,

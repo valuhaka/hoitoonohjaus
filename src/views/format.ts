@@ -20,7 +20,7 @@ export const scheduleLine = (group: GroupListing, lang: Lang, withSessions = fal
 export const distanceText = (group: GroupListing, distanceKm: number | null, lang: Lang) =>
   distanceKm !== null
     ? DICTS[lang].km(distanceKm)
-    : group.format === 'remote' ? DICTS[lang].remote : DICTS[lang].locationUnknown
+    : group.format !== 'inPerson' ? DICTS[lang].remote : DICTS[lang].locationUnknown
 
 export const seatsText = ({ group, seatsLeft }: Match, lang: Lang) =>
   seatsLeft !== null ? DICTS[lang].seatsLeft(seatsLeft) : DICTS[lang].enrolment[group.status ?? 'unknown']

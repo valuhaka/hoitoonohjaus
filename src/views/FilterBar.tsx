@@ -1,6 +1,8 @@
 import type { CSSProperties } from 'react'
+import { GENDERS, type Gender } from '../data/treatments'
 import {
-  DISTANCE_SCALE, FEE_SCALE, isActive, NO_FILTERS, type FilterGuess, type Filters, type Range, type TimeOfDay,
+  DISTANCE_SCALE, isActive, NO_FILTERS, SESSION_FILTERS,
+  type FilterGuess, type Filters, type Range, type Scale, type SessionFilter, type TimeOfDay,
 } from '../lib/filters'
 import { useT } from '../i18n'
 
@@ -17,14 +19,14 @@ const RangeSlider = ({
 }: {
   label: string
   value: Range
-  scale: { max: number; step: number }
+  scale: Scale
   unit: string
   suggestion: Suggestion
   onChange: (range: Range) => void
 }) => {
   const { t } = useT()
   const f = t.filters
-  const top = value.max ?? scale.max
+  const top = Math.min(value.max ?? scale.max, scale.max)
   const text =
     value.min === 0 && value.max === null ? f.any
     : value.max === null ? `${f.min} ${value.min} ${unit}`
@@ -54,10 +56,12 @@ const fromNumber = (value: number | null) => (value === null ? '' : String(value
 export const FilterBar = ({
   filters,
   guess,
+  feeScale,
   onChange,
 }: {
   filters: Filters
   guess: FilterGuess
+  feeScale: Scale
   onChange: (filters: Filters) => void
 }) => {
   const { t } = useT()
@@ -90,8 +94,23 @@ export const FilterBar = ({
           <option value="evening">{f.timeEvening}</option>
         </select>
       </label>
-      <RangeSlider label={f.cost} unit="€" value={filters.fee} scale={FEE_SCALE}
-        suggestion={suggested('fee')} onChange={v => set('fee', v)} />
+      <label>
+        {f.session}
+        <select value={filters.session} onChange={e => set('session', e.target.value as SessionFilter)}>
+          {SESSION_FILTERS.map(s => <option key={s} value={s}>{f.sessions[s]}</option>)}
+        </select>
+      </label>
+      <label>
+        {f.gender}
+        <select value={filters.gender} onChange={e => set('gender', e.target.value as Gender | 'any')}>
+          {(['any', ...GENDERS] as const).map(g => <option key={g} value={g}>{f.genders[g]}</option>)}
+        </select>
+      </label>
+      {/* Nothing to filter when every listing is free */}
+      {feeScale.max > 0 && (
+        <RangeSlider label={f.cost} unit="€" value={filters.fee} scale={feeScale}
+          suggestion={suggested('fee')} onChange={v => set('fee', v)} />
+      )}
       <RangeSlider label={f.distance} unit="km" value={filters.distanceKm} scale={DISTANCE_SCALE}
         suggestion={suggested('distanceKm')} onChange={v => set('distanceKm', v)} />
       {isActive(filters) && (
