@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { GROUPS } from '../data/groups'
+import { HASHTAG_IDS } from '../data/hashtags'
 import { PATIENTS } from '../data/patients'
+import { SOURCE_URLS, SOURCES_WITHOUT_LISTINGS, TREATMENTS } from '../data/treatments'
 import { ADAPTERS } from './booking'
 import { mockExtractor } from './extraction'
 import { applyFilters, guessFilters, NO_FILTERS } from './filters'
@@ -95,6 +97,43 @@ describe('booking', () => {
   it('only references registered adapters', () => {
     GROUPS.forEach(g => {
       if (g.booking.type === 'integrated') expect(ADAPTERS[g.booking.adapter]).toBeDefined()
+    })
+  })
+})
+
+describe('real treatment catalogue', () => {
+  it('has unique ids', () => {
+    const ids = TREATMENTS.map(t => t.id)
+    expect(new Set(ids).size).toBe(ids.length)
+  })
+  it('only uses known hashtags, without duplicates', () => {
+    TREATMENTS.forEach(t => {
+      t.tags.forEach(tag => expect(HASHTAG_IDS).toContain(tag))
+      expect(new Set(t.tags).size).toBe(t.tags.length)
+    })
+  })
+  it('explains every entry left out of matching', () => {
+    TREATMENTS.filter(t => t.tags.length === 0).forEach(t => expect(t.untaggedReason, t.id).toBeTruthy())
+    TREATMENTS.filter(t => t.tags.length > 0).forEach(t => expect(t.untaggedReason, t.id).toBeUndefined())
+  })
+  it('traces every entry to an input page and covers every input page', () => {
+    const sources = new Set<string>(SOURCE_URLS)
+    TREATMENTS.forEach(t => expect(sources.has(t.sourceUrl), t.id).toBe(true))
+    const used = new Set(TREATMENTS.map(t => t.sourceUrl))
+    SOURCE_URLS.forEach(url => expect(used.has(url) || url in SOURCES_WITHOUT_LISTINGS, url).toBe(true))
+  })
+  it('keeps coordinates inside southern Finland', () => {
+    TREATMENTS.flatMap(t => t.locations).forEach(l => {
+      if (!l.coords) return
+      expect(l.coords.lat).toBeGreaterThan(59.7)
+      expect(l.coords.lat).toBeLessThan(60.7)
+      expect(l.coords.lon).toBeGreaterThan(22.8)
+      expect(l.coords.lon).toBeLessThan(25.8)
+    })
+  })
+  it('never reports more enrolled than capacity', () => {
+    TREATMENTS.forEach(({ vacancy: v }) => {
+      if (v.capacity !== null && v.enrolled !== null) expect(v.enrolled).toBeLessThanOrEqual(v.capacity)
     })
   })
 })
