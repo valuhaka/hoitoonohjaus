@@ -41,16 +41,22 @@ const AccessDialog = ({
           {REASONS.map(r => <option key={r} value={r}>{t.reasons[r]}</option>)}
         </select>
       </label>
-      <DataSources patient={patient} role="professional" disabled={!acknowledged || reason === ''}
-        actions={input => (
+      {/* The data choices appear only once logging is acknowledged and a basis is given */}
+      {acknowledged && reason !== ''
+        ? <DataSources patient={patient} role="professional" actions={input => (
+            <div className="actions">
+              <button className="secondary" onClick={onClose}>{t.cancel}</button>
+              <button className="primary" disabled={!input} onClick={() => input && onOpen(input, reason)}>
+                {t.openAndMatch}
+              </button>
+            </div>
+          )} />
+        : (
           <div className="actions">
             <button className="secondary" onClick={onClose}>{t.cancel}</button>
-            <button className="primary" disabled={!input || reason === ''}
-              onClick={() => input && reason !== '' && onOpen(input, reason)}>
-              {t.openAndMatch}
-            </button>
+            <button className="primary" disabled>{t.openAndMatch}</button>
           </div>
-        )} />
+        )}
     </Modal>
   )
 }
@@ -78,10 +84,9 @@ export const PatientSearch = ({
   return (
     <main className="content">
       <section className="panel">
-        <h1>{t.searchTitle}</h1>
         <form className="search-row" onSubmit={submit}>
           <label className="grow">
-            {t.searchLabel}
+            <span className="visually-hidden">{t.searchLabel}</span>
             <input
               autoFocus
               value={query}

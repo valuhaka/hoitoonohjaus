@@ -1,11 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
 import * as maplibregl from 'maplibre-gl'
 import type { Feature, FeatureCollection, LineString } from 'geojson'
-import type { CareContact } from '../data/patients'
-import { basemapAvailable, circlePolygon, createBaseMap, pinElement } from '../lib/basemap'
+import type { CareContact, CareContactKind } from '../data/patients'
+import { basemapAvailable, createBaseMap, pinElement } from '../lib/basemap'
+import { circlePolygon, ringPolygon } from '../lib/shapes'
 import type { Coords } from '../lib/geo'
+import type { Range } from '../lib/filters'
 import type { Match } from '../lib/match'
+import { rankLabel } from '../lib/rank'
 import { useT } from '../i18n'
+import { iconSvg } from './mapIcons'
 
 const RADIUS_SOURCE = 'distance-radius'
 const NETWORK_SOURCE = 'care-network'
@@ -41,24 +45,37 @@ const networkLines = (nodes: Point[]): FeatureCollection<LineString> => ({
   ),
 })
 
-const contactElement = (label: string, name: string) => {
+const contactElement = (kind: CareContactKind, label: string, name: string) => {
   const el = document.createElement('div')
   el.className = 'map-contact'
   el.title = name
   el.setAttribute('aria-label', name)
-  const dot = document.createElement('span')
+  el.innerHTML = `<span class="map-contact-icon">${iconSvg(kind)}</span>`
   const text = document.createElement('span')
+  text.className = 'map-contact-label'
   text.textContent = label
-  el.append(dot, text)
+  el.append(text)
   return el
 }
+
+const homeElement = (label: string) => {
+  const el = document.createElement('div')
+  el.className = 'map-home'
+  el.innerHTML = iconSvg('home')
+  el.append(label)
+  return el
+}
+
+// Icon for the legend, rendered from the same markup as the markers
+const Icon = ({ kind }: { kind: CareContactKind | 'home' }) =>
+  <span className="key icon" dangerouslySetInnerHTML={{ __html: iconSvg(kind) }} />
 
 export const GroupMap = ({
   matches,
   all,
   home,
   contacts,
-  radiusKm,
+  range,
   activeId,
   onSelect,
 }: {
@@ -68,7 +85,8 @@ export const GroupMap = ({
   // null and [] when the patient's locations must not be shown (turvakielto)
   home: Coords | null
   contacts: CareContact[]
-  radiusKm: number | null
+  // The distance filter, drawn as a donut around home
+  range: Range
   activeId: string | null
   onSelect: (groupId: string) => void
 }) => {
@@ -92,7 +110,10 @@ export const GroupMap = ({
       m.addSource(NETWORK_SOURCE, { type: 'geojson', data: EMPTY })
       m.addLayer({ id: 'network-line', type: 'line', source: NETWORK_SOURCE, paint: { 'line-color': '#7d8a86', 'line-width': 1.25, 'line-opacity': 0.8 } })
       m.addSource(RADIUS_SOURCE, { type: 'geojson', data: EMPTY })
-      m.addLayer({ id: 'radius-fill', type: 'fill', source: RADIUS_SOURCE, paint: { 'fill-color': '#89cabc', 'fill-opacity': 0.14 } })
+      m.addLayer({
+        id: 'radius-fill', type: 'fill', source: RADIUS_SOURCE,
+        paint: { 'fill-color': '#89cabc', 'fill-opacity': ['case', ['get', 'fill'], 0.18, 0] },
+      })
       m.addLayer({
         id: 'radius-line', type: 'line', source: RADIUS_SOURCE,
         paint: { 'line-color': '#008d70', 'line-width': 1.25, 'line-dasharray': [3, 3] },
@@ -109,7 +130,8 @@ export const GroupMap = ({
     }
   }, [lang])
 
-  const located = matches.flatMap((m, i) => (m.group.coords ? [{ match: m, rank: i + 1, coords: m.group.coords }] : []))
+  const located = matches.flatMap((m, i) => (m.group.coords ? [{ match: m, rank: rankLabel(i), coords: m.group.coords }] : []))
+  const kinds = [...new Set(contacts.map(c => c.kind))]
 
   // Markers, network and radius follow the visible matches
   useEffect(() => {
@@ -118,12 +140,12 @@ export const GroupMap = ({
     markers.current.forEach(mk => mk.remove())
     markers.current = [
       ...contacts.map(c =>
-        new maplibregl.Marker({ element: contactElement(t.map.kinds[c.kind], c.name), anchor: 'left', offset: [-5, 0] })
+        new maplibregl.Marker({ element: contactElement(c.kind, t.map.kinds[c.kind], c.name), anchor: 'left', offset: [-11, 0] })
           .setLngLat([c.coords.lon, c.coords.lat])),
-      ...(home ? [new maplibregl.Marker({ element: pinElement(t.home, 'map-home'), anchor: 'top', offset: [0, 18] }).setLngLat([home.lon, home.lat])] : []),
+      ...(home ? [new maplibregl.Marker({ element: homeElement(t.home), anchor: 'top', offset: [0, 18] }).setLngLat([home.lon, home.lat])] : []),
       ...located.map(({ match, rank, coords }) => {
         const classes = ['map-pin', match.seatsLeft === 0 && 'full', match.group.id === activeId && 'active']
-        const el = pinElement(String(rank), classes.filter(Boolean).join(' '))
+        const el = pinElement(rank, classes.filter(Boolean).join(' '))
         el.title = match.group.name
         el.setAttribute('role', 'button')
         el.setAttribute('aria-label', `${rank}. ${match.group.name}`)
@@ -135,8 +157,8 @@ export const GroupMap = ({
 
     m.getSource<maplibregl.GeoJSONSource>(NETWORK_SOURCE)
       ?.setData(home ? networkLines([home, ...contacts.map(c => c.coords)]) : EMPTY)
-    m.getSource<maplibregl.GeoJSONSource>(RADIUS_SOURCE)
-      ?.setData(home && radiusKm !== null ? circlePolygon(home, radiusKm) : EMPTY)
+    const donut = home && ringPolygon(home, range.min, range.max)
+    m.getSource<maplibregl.GeoJSONSource>(RADIUS_SOURCE)?.setData(donut || EMPTY)
   })
 
   // Opening animation; `ready` turns true once per map
@@ -158,17 +180,17 @@ export const GroupMap = ({
   // Runs when the map becomes ready; later changes are handled below
   }, [ready])
 
-  // After the opening, refit only when the distance limit changes
-  const lastRadius = useRef(radiusKm)
+  // After the opening, refit only when the outer distance limit changes
+  const lastMax = useRef(range.max)
   useEffect(() => {
     const m = map.current
-    if (!m || !ready || lastRadius.current === radiusKm) return
-    lastRadius.current = radiusKm
-    const points = home && radiusKm !== null
-      ? circlePoints(home, radiusKm)
+    if (!m || !ready || lastMax.current === range.max) return
+    lastMax.current = range.max
+    const points = home && range.max !== null
+      ? circlePoints(home, range.max)
       : [...located.map(l => l.coords), ...(home ? [home] : [])]
     if (points.length > 0) m.fitBounds(boundsOf(points), { padding: 32, maxZoom: 12, duration: 600 })
-  }, [ready, radiusKm])
+  }, [ready, range.max])
 
   // The canvas changes size when the map is enlarged
   useEffect(() => {
@@ -188,9 +210,10 @@ export const GroupMap = ({
           {expanded ? t.map.collapse : t.map.expand}
         </button>
         <ul className="map-legend">
-          {home && <li><span className="key home" />{t.home}</li>}
+          {home && <li><Icon kind="home" />{t.home}</li>}
+          {kinds.map(kind => <li key={kind}><Icon kind={kind} />{t.map.kinds[kind]}</li>)}
           {contacts.length > 0 && <li><span className="key network" />{t.map.contacts}</li>}
-          <li><span className="key group" />{t.map.groups}</li>
+          <li><span className="key group">A</span>{t.map.groups}</li>
         </ul>
         {missing && <p className="map-missing">{t.mapMissing}</p>}
       </div>

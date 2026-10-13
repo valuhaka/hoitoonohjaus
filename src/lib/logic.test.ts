@@ -10,7 +10,9 @@ import { isEligible } from './eligibility'
 import { allData, mockExtractor } from './extraction'
 import { applyFilters, guessFilters, NO_FILTERS } from './filters'
 import { lookupNavigatorCode } from './navigator'
+import { rankLabel } from './rank'
 import { searchPatients } from './registry'
+import { ringPolygon } from './shapes'
 import { ageAt, isValidHetu } from './hetu'
 import { fitScore, idfWeights, rankGroups } from './match'
 
@@ -162,6 +164,48 @@ describe('access by role', () => {
   })
   it('rejects a wrong password', () => {
     expect(authenticate('patient', 'aino', 'x')).toBeNull()
+  })
+})
+
+describe('patient search', () => {
+  const pro = authenticate('professional', 'demo', 'demo')!
+  const find = async (q: string) => {
+    const r = await searchPatients(q, pro)
+    return r.kind === 'found' ? r.patients.map(p => p.hetu) : r.kind === 'invalid' ? r.message : r.kind
+  }
+
+  it('accepts names in any order, any subset, and partial names', async () => {
+    expect(await find('Virtanen Aino')).toEqual(['120358-912J', '040791-934U'])
+    expect(await find('Aino Virtanen')).toEqual(['120358-912J', '040791-934U'])
+    expect(await find('Maria Virtanen')).toEqual(['120358-912J'])
+    expect(await find('kaarina aino')).toEqual(['040791-934U'])
+    expect(await find('Mik Lindq')).toEqual(['150301A9577'])
+  })
+  it('combines names with the identity code or date of birth', async () => {
+    expect(await find('120358-912J')).toEqual(['120358-912J'])
+    expect(await find('Aino 120358')).toEqual(['120358-912J'])
+    expect(await find('Virtanen 120358-912J')).toEqual(['120358-912J'])
+    expect(await find('Kaarina 120358-912J')).toEqual([])
+  })
+  it('needs one name part per token', async () => {
+    expect(await find('Aino Aino')).toEqual([])
+  })
+  it('refuses a single name and malformed identity codes', async () => {
+    expect(await find('Virtanen')).toBe('tooLittle')
+    expect(await find('120358-912K')).toBe('invalidHetu')
+  })
+})
+
+describe('map shapes and labels', () => {
+  it('labels results A–Z, then AA–ZZ', () => {
+    expect([0, 25, 26, 27, 51, 52, 701].map(rankLabel)).toEqual(['A', 'Z', 'AA', 'AB', 'AZ', 'BA', 'ZZ'])
+  })
+  it('draws the distance range as a donut', () => {
+    const home = { lat: 60.2, lon: 24.0 }
+    expect(ringPolygon(home, 0, null)).toBeNull()
+    expect(ringPolygon(home, 0, 25)!.geometry.coordinates).toHaveLength(1)
+    expect(ringPolygon(home, 10, 25)!.geometry.coordinates).toHaveLength(2)
+    expect(ringPolygon(home, 10, null)!.properties).toEqual({ fill: false })
   })
 })
 

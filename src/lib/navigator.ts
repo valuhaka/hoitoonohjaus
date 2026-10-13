@@ -8,8 +8,8 @@ export type NavigatorId = 'terapianavigaattori' | 'interventionavigaattori'
 export const NAVIGATOR_IDS: NavigatorId[] = ['terapianavigaattori', 'interventionavigaattori']
 
 export const NAVIGATORS: Record<NavigatorId, { name: string; url: string; adults: boolean }> = {
-  terapianavigaattori: { name: 'Terapianavigaattori', url: 'https://www.terapianavigaattori.fi', adults: true },
-  interventionavigaattori: { name: 'Interventionavigaattori', url: 'https://www.mielenterveystalo.fi', adults: false },
+  terapianavigaattori: { name: 'Terapianavigaattori', url: 'https://terapianavigaattori.fi/', adults: true },
+  interventionavigaattori: { name: 'Interventionavigaattori', url: 'https://interventionavigaattori.fi/', adults: false },
 }
 
 export const navigatorForAge = (age: number): NavigatorId =>

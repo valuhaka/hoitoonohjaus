@@ -6,7 +6,7 @@ Single source of styling: `src/styles.css`. The React app imports it, and the st
 
 - **Name:** Psyykkeri. The name is the same in every UI language.
 - **Font:** [Cabin](https://fonts.google.com/specimen/Cabin), weights 400/500/600/700, loaded via `@import` at the top of `src/styles.css`. Fallback: `system-ui`.
-- **Wordmark:** "Psyykkeri" set in Cabin 700, `--green-dark`. No logo mark yet.
+- **Wordmark:** "Psyykkeri" set in Cabin 700, `--green-dark`, centred in the top bar. No logo mark yet.
 
 ## Colour
 
@@ -53,12 +53,13 @@ Depth comes from light, never from decoration. Raised surfaces are slightly lit 
 - Accent edges: 3px `--green` bottom border on the top bar and top border on dialogs, 4px `--green` left border on group cards. The active (hovered or map-selected) card gets a `--green-light` outline.
 - Content column max width 960px (`.content`). The results page uses `.content.wide` (1280px): `.results-main` (topics, filters, cards) on the left and the sticky map on the right, both starting right under the patient banner. 1rem side gutter.
 - The top bar (`--topbar-h`) is sticky and the status bar (`--statusbar-h`) is fixed; the map panel's height is derived from both so it always fits the window.
+- Top bar layout, three columns: left the "Etusivu" button (signed in only; returns to the screen right after login) and the data source switch, centre the wordmark "Psyykkeri" alone (the organisation name lives in the status bar), right the language switch and sign out.
 - Spacing: cards are 1.5rem apart with 1.5rem padding.
 - Checkboxes and radios use the native control with `accent-color: --green-dark`. A checkbox row is `label.check` (box left, text wrapping beside it).
 
 ## Content rules
 
-- **No emojis or pictograms** in the UI. Use text labels.
+- **No emojis or pictograms** in the UI. Use text labels. The one exception is map markers and the map legend, which use the line icons in `src/views/mapIcons.ts` (home, health centre, mental health services, hospital, social work, school, student health care): 16×16, 1.5px strokes in `currentColor`, no fills.
 - **No hashtag notation.** Topics are shown as plain words with an initial capital (Yksinäisyys, Krooninen kipu). The `#` ids exist only in data and the extraction prompt.
 - **No explanatory subtitles** that repeat what the screen already shows (result counts, "update instantly" hints, data source lines, eyebrow labels above dialog titles). Keep notices with legal or safety meaning (the access log notice, identity confirmation).
 - **Distances:** number and unit only (`17 km`). Remote groups say "Etäryhmä".
@@ -69,19 +70,22 @@ Depth comes from light, never from decoration. Raised surfaces are slightly lit 
 
 ### Login
 
-Three joined role boxes (`.role-choice`, `.role-option`): Potilas, Toisen puolesta, Ammattilainen. The chosen one is filled dark green. Below: the strong authentication button (`.strong-auth`, a primary button with the method on a second line: Suomi.fi for citizens, the professional card for professionals). It is for show only and answers with a hint. Then "tai" and the username form, with the demo account as a hint.
+Three joined role boxes (`.role-choice`, `.role-option`): Potilas, Toisen puolesta, Ammattilainen, with no subtitles. The chosen one is filled dark green. Below: the "Vahva tunnistautuminen" button, for show only (it answers with a hint), then "tai" and the username form. No demo-account hint.
 - Patients see only themselves and proxies only the persons they act for (`src/lib/auth.ts`); neither gets the patient search.
 
 ### Access dialog and data sources
 
-Opening a record (professional) is three explicit steps in one dialog:
-1. A checkbox acknowledging that access is logged (`.acknowledge`, tinted box).
-2. The access basis select, disabled and greyed until step 1 is checked.
-3. The data sources (`DataSources.tsx`, `fieldset.sources`), disabled until a basis is chosen:
-   - health records: a parent checkbox with one sub-checkbox per register that holds entries for this patient, each with its entry count. Kanta starts unchecked and says it needs the patient's consent.
-   - own description, chat style: a prompt bubble (`.chat-prompt`) above a textarea (`.chat-input`) prefilled with a starting phrase ("Potilas on "). The phrase alone does not count as data.
-   - navigator code (`.navigator-row`): Terapianavigaattori or Interventionavigaattori (chosen by age), the 8-digit code, and links to the services.
-A `.summary` box lists exactly what the search will use and states the purpose. The main button stays disabled until at least one source is chosen. Patients and proxies get the same sources on a page (`.self-service`) without steps 1–2.
+Opening a record (professional) reveals one stage at a time, so the dialog starts short:
+1. **Consent and basis.** At first the dialog shows only the identity, a checkbox acknowledging that access is logged (`.acknowledge`, tinted box), and the access basis select (greyed until the box is checked).
+2. **Registers (mandatory)**, once a basis is chosen (`DataSources.tsx`, `section.sources`): "Kaikki rekisterit" with one sub-checkbox per register that holds entries for this patient, each with its entry count. At least one is required; Kanta starts unchecked and says it needs the patient's consent.
+3. **Optional extras** (`section.sources.optional`): a dashed, lighter box titled "Valinnaiset lisätiedot", each field tagged `.optional-tag` "valinnainen":
+   - own description, chat style: a prompt bubble (`.chat-prompt`) above an empty textarea (`.chat-input`) whose grey placeholder ("Potilas on…") disappears when typing.
+   - navigator code (`.navigator-row`): Terapianavigaattori or Interventionavigaattori (chosen by age), the 8-digit code, and links to terapianavigaattori.fi and interventionavigaattori.fi.
+A `.summary` box lists exactly what the search will use and states the purpose. Patients and proxies get stages 2–3 on a page (`.self-service`).
+
+### Patient search
+
+One field with no title or label text (the label is visually hidden). Name parts, the identity code and the date of birth (DDMMYY) can be given in any order and any subset; name parts match from the start, ignoring case and accents. A full identity code is enough alone; otherwise at least two pieces are needed, so one name cannot browse the register.
 
 ### Processing
 
@@ -95,10 +99,12 @@ A dark green panel (`.processing`) with animated white strings (`.waves`, drawn 
 
 MapLibre GL with an offline Protomaps basemap (`public/maps/`, see README.md), set up in `src/lib/basemap.ts`. The Protomaps "light" flavour is recoloured towards the palette (mint water, green-grey land and parks). Map labels follow the UI language. The map is square and sits sticky to the right of the cards (`.results-layout`, `.map-panel`). Below 900px wide, it moves above the cards. "Suurenna kartta" (`.map-expand`) opens it as a window over the page (`.map.expanded` with a `.map-backdrop`); Escape or the backdrop closes it. A small legend (`.map-legend`) sits bottom left.
 - Opening animation: the map first shows every matching treatment, then zooms in to a 15 km radius around the patient's home.
-- Care network: the patient's current care contacts (health centre, school, social work, hospital) are grey squares (`.map-contact`). Home and every contact are joined by straight grey lines. Contact labels appear from zoom 11 or on hover, so they don't overlap. If the map file is missing, a red notice says so instead of showing a blank panel.
+- The distance filter is drawn as a donut: dashed circles at the minimum and maximum distance, with the band between them tinted. Without an upper limit only the inner circle is drawn.
+- Results are labelled with letters, the same on cards and pins: A–Z, then AA–ZZ (`src/lib/rank.ts`). Rank squares and pins widen for two letters.
+- Care network: the patient's current care contacts (health centre, school, social work, hospital) are white squares with a grey line icon (`.map-contact`, `.map-contact-icon`); home is the dark-green-bordered box with a house icon and "Koti". The legend lists the icons present. Home and every contact are joined by straight grey lines. Contact labels appear from zoom 11 or on hover, so they don't overlap. If the map file is missing, a red notice says so instead of showing a blank panel.
 - Pins (`.map-pin`) are dark green squares carrying the card's rank. Full groups are grey; the active pin is `--green`, enlarged, with a `--green-light` outline.
 - Pins are MapLibre markers, which MapLibre positions with `transform`. Pin states must change size, never `transform`.
-- Home (`.map-home`) is a white box with a dark green border, anchored just below the point so it doesn't hide a pin at the same place. The distance filter is drawn as a dashed `--green` circle, and the view fits the whole circle.
+- Home (`.map-home`) is a white box with a dark green border, anchored just below the point so it doesn't hide a pin at the same place.
 - **Patients with a non-disclosure order (turvakielto) get no home marker, no circle and no care network**, except when the patients themselves are signed in.
 - Hovering a card highlights its pin, and clicking a pin scrolls to its card. Coordinates are WGS84.
 
@@ -114,7 +120,7 @@ Every dialog is a window (`Modal.tsx`): a `.titlebar` with the title and a text-
 
 ### Status bar
 
-`.statusbar`, fixed to the bottom while signed in: a small green light with "Yhdistetty: LUVN", the last sync time, and the signed-in user. Segments are separated by grooves (a border plus a white line). On narrow screens the user segment is hidden. The user's name appears only here, not in the top bar.
+`.statusbar`, fixed to the bottom on every screen, 2.25rem tall with 0.9rem text: the organisation name ("Länsi-Uudenmaan hyvinvointialue"), then once signed in a small green light with "Yhdistetty: LUVN", the last sync time, and the signed-in user. Segments are separated by grooves (a border plus a white line). On narrow screens the user segment is hidden. The user's name appears only here, not in the top bar.
 
 ### Information dialog
 
@@ -129,7 +135,7 @@ Each component has a static reference file in `design/` (open `design/index.html
 
 | File | React source | Key classes |
 |---|---|---|
-| `topbar.html` | `src/App.tsx` | `.topbar`, `.brand`, `.lang-switch`, `.segment`, `.data-switch` |
+| `topbar.html` | `src/App.tsx` | `.topbar`, `.topbar-left`, `.home-button`, `.brand`, `.lang-switch`, `.segment`, `.data-switch` |
 | `login.html` | `src/views/Login.tsx` | `.login`, `.role-choice`, `.role-option`, `.strong-auth`, `.divider` |
 | `patient-search.html` | `src/views/PatientSearch.tsx` | `.search-row`, `.results-table` |
 | `access-dialog.html` | `src/views/PatientSearch.tsx`, `DataSources.tsx`, `Modal.tsx` | `.modal`, `.titlebar`, `.modal-body`, `.identity`, `.acknowledge`, `.sources`, `.sub-checks`, `.chat-prompt`, `.chat-input`, `.navigator-row`, `.summary` |

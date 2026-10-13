@@ -47,17 +47,15 @@ export const App = () => {
   return (
     <I18n.Provider value={{ t, lang }}>
       <header className="topbar">
-        <div className="brand">
-          <div>
-            <strong>{t.appName}</strong>
-            <small>{t.org}</small>
-          </div>
+        <div className="topbar-left">
+          {user && <button className="secondary home-button" onClick={() => setScreen({ name: 'start' })}>{t.backHome}</button>}
           <button className={`badge data-switch ${dataSource}`} role="switch" aria-checked={dataSource === 'real'}
             title={t.dataSource.toggle} onClick={() => setDataSource(s => (s === 'real' ? 'synthetic' : 'real'))}>
             <span className="switch-track" aria-hidden="true"><span className="switch-knob" /></span>
             {t.dataSource[dataSource]}
           </button>
         </div>
+        <strong className="brand">{t.appName}</strong>
         <div className="topbar-right">
           <div className="lang-switch" role="group" aria-label="Kieli / Språk / Language">
             {LANGS.map(l => (
@@ -83,7 +81,7 @@ export const App = () => {
         <Results patient={screen.input.patient} extraction={screen.extraction} groups={LISTINGS[dataSource]} user={user}
           onNewSearch={() => setScreen({ name: 'start' })} />
       )}
-      {user && <StatusBar user={user} syncedAt={syncedAt} />}
+      <StatusBar user={user} syncedAt={syncedAt} />
     </I18n.Provider>
   )
 }

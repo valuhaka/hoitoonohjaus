@@ -1,8 +1,6 @@
 import * as maplibregl from 'maplibre-gl'
 import { Protocol } from 'pmtiles'
 import { layers, namedFlavor, type Flavor } from '@protomaps/basemaps'
-import type { Feature, Polygon } from 'geojson'
-import type { Coords } from './geo'
 // MapLibre finds its worker relative to its own file, which bundling moves; point at it explicitly
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'
 
@@ -78,18 +76,6 @@ export const basemapAvailable = async (): Promise<boolean> => {
   } catch {
     return false
   }
-}
-
-// Polygon approximating a circle of `radiusKm` around `center`, as GeoJSON
-export const circlePolygon = (center: Coords, radiusKm: number, steps = 64): Feature<Polygon> => {
-  const latRad = (center.lat * Math.PI) / 180
-  const dLat = radiusKm / 110.574
-  const dLon = radiusKm / (111.32 * Math.cos(latRad))
-  const ring = Array.from({ length: steps + 1 }, (_, i) => {
-    const a = (i / steps) * 2 * Math.PI
-    return [center.lon + dLon * Math.cos(a), center.lat + dLat * Math.sin(a)]
-  })
-  return { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [ring] } }
 }
 
 export const pinElement = (label: string, className: string): HTMLDivElement => {

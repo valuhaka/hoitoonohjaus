@@ -32,38 +32,36 @@
         <option>Konsultaatio</option>
       </select>
     </label>
-    <fieldset class="sources">
-      <legend>Haussa käytettävät tiedot</legend>
-      <div class="source">
-        <label class="check"><input type="checkbox" checked /><span><strong>Potilastiedot</strong></span></label>
-        <div class="sub-checks">
-          <label class="check"><input type="checkbox" checked /><span>Perusterveydenhuolto <small class="hint">2 merkintää</small></span></label>
-          <label class="check"><input type="checkbox" checked /><span>Sosiaalihuolto <small class="hint">1 merkintä</small></span></label>
-          <label class="check"><input type="checkbox" /><span>Kanta: muut palvelunantajat <small class="hint">1 merkintä · vaatii potilaan suostumuksen</small></span></label>
-        </div>
+    <section class="sources">
+      <h3>Potilastiedot</h3>
+      <label class="check"><input type="checkbox" checked /><span>Kaikki rekisterit</span></label>
+      <div class="sub-checks">
+        <label class="check"><input type="checkbox" checked /><span>Perusterveydenhuolto <small class="hint">2 merkintää</small></span></label>
+        <label class="check"><input type="checkbox" checked /><span>Sosiaalihuolto <small class="hint">1 merkintä</small></span></label>
+        <label class="check"><input type="checkbox" /><span>Kanta: muut palvelunantajat <small class="hint">1 merkintä · vaatii potilaan suostumuksen</small></span></label>
       </div>
+    </section>
+    <section class="sources optional">
+      <h3>Valinnaiset lisätiedot</h3>
       <div class="source chat">
-        <label for="text"><strong>Oma kuvaus</strong></label>
+        <label for="text">Oma kuvaus <span class="optional-tag">valinnainen</span></label>
         <p class="chat-prompt">Kuvaa potilaan tilanne omin sanoin.</p>
-        <textarea id="text" class="chat-input" rows="3">Potilas on kertonut, että nukahtaminen on vaikeaa.</textarea>
+        <textarea id="text" class="chat-input" rows="3" placeholder="Potilas on…"></textarea>
       </div>
       <div class="source">
-        <label for="code"><strong>Navigaattorikoodi</strong></label>
+        <label for="code">Navigaattorikoodi <span class="optional-tag">valinnainen</span></label>
         <div class="navigator-row">
           <select aria-label="Navigaattorikoodi"><option selected>Terapianavigaattori</option><option>Interventionavigaattori</option></select>
-          <input id="code" class="mono" value="4821 3097" />
+          <input id="code" class="mono" placeholder="0000 0000" />
         </div>
-        <p class="hint">Kahdeksannumeroinen tuloskoodi, voimassa kuukauden · <a href="https://www.terapianavigaattori.fi">Terapianavigaattori</a> · <a href="https://www.mielenterveystalo.fi">Interventionavigaattori</a></p>
-        <p class="ok">Koodi löytyi: 3 aihetta</p>
+        <p class="hint">Kahdeksannumeroinen tuloskoodi, voimassa kuukauden · <a href="https://terapianavigaattori.fi/">Terapianavigaattori</a> · <a href="https://interventionavigaattori.fi/">Interventionavigaattori</a></p>
       </div>
-    </fieldset>
+    </section>
     <div class="summary">
       <strong>Haku käyttää</strong>
       <ul>
         <li>ikää ja kotiosoitetta väestötiedoista</li>
         <li>3 merkintää 2 rekisteristä</li>
-        <li>omaa kuvausta</li>
-        <li>Terapianavigaattori-tulosta</li>
       </ul>
       <p class="hint">Tietoja käytetään vain sopivien ryhmien hakemiseen. Psyykkeri ei tallenna niitä.</p>
     </div>

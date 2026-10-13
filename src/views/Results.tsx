@@ -7,6 +7,7 @@ import type { Extraction } from '../lib/extraction'
 import { ageAt } from '../lib/hetu'
 import { applyFilters, guessFilters, type Filters } from '../lib/filters'
 import { rankGroups, type Match } from '../lib/match'
+import { rankLabel } from '../lib/rank'
 import { formatFee, useT, type Lang } from '../i18n'
 import { BookingDialog } from './BookingDialog'
 import { FilterBar } from './FilterBar'
@@ -31,7 +32,7 @@ const GroupCard = ({
   onReserve,
 }: {
   match: Match
-  rank: number
+  rank: string
   reserved: boolean
   active: boolean
   cardRef: (el: HTMLElement | null) => void
@@ -39,7 +40,7 @@ const GroupCard = ({
   onReserve: () => void
 }) => {
   const { t, lang } = useT()
-  const { group, score, matched, distanceKm, seatsLeft } = match
+  const { group, matched, distanceKm, seatsLeft } = match
   const className = ['card', seatsLeft === 0 && 'full', active && 'active'].filter(Boolean).join(' ')
   return (
     <article ref={cardRef} className={className} onMouseEnter={onHover}>
@@ -141,7 +142,7 @@ export const Results = ({
             {ranked.length === 0 && <p className="hint">{t.noMatches}</p>}
             {ranked.length > 0 && visible.length === 0 && <p className="hint">{t.noFilteredMatches}</p>}
             {visible.map((m, i) => (
-              <GroupCard key={m.group.id} match={m} rank={i + 1}
+              <GroupCard key={m.group.id} match={m} rank={rankLabel(i)}
                 reserved={m.group.id in holds}
                 active={m.group.id === activeId}
                 cardRef={el => { if (el) cardRefs.current.set(m.group.id, el); else cardRefs.current.delete(m.group.id) }}
@@ -154,7 +155,7 @@ export const Results = ({
           <GroupMap matches={visible} all={ranked}
             home={showLocations ? patient.homeCoords : null}
             contacts={showLocations ? patient.contacts : []}
-            radiusKm={filters.distanceKm.max}
+            range={filters.distanceKm}
             activeId={activeId}
             onSelect={selectFromMap} />
         </aside>

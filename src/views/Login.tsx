@@ -29,21 +29,17 @@ export const Login = ({ onLogin }: { onLogin: (user: User) => void }) => {
       <section className="panel login">
         <h1>{t.loginTitle}</h1>
         <fieldset className="role-choice">
-          <legend>{t.roleLabel}</legend>
+          <legend className="visually-hidden">{t.roleLabel}</legend>
           {ROLES.map(r => (
             <label key={r} className={r === role ? 'role-option active' : 'role-option'}>
               <input type="radio" name="role" value={r} checked={r === role} onChange={() => chooseRole(r)} />
               <strong>{t.roles[r]}</strong>
-              <small>{t.roleHints[r]}</small>
             </label>
           ))}
         </fieldset>
 
         {/* For show only: strong authentication goes through Suomi.fi or the professional card reader */}
-        <button className="primary wide strong-auth" onClick={() => setStrongAuthNotice(true)}>
-          <span>{t.strongAuth}</span>
-          <small>{role === 'professional' ? t.strongAuthVia.professional : t.strongAuthVia.citizen}</small>
-        </button>
+        <button className="primary wide" onClick={() => setStrongAuthNotice(true)}>{t.strongAuth}</button>
         {strongAuthNotice && <p className="hint">{t.strongAuthDemo}</p>}
 
         <div className="divider">{t.loginOr}</div>
@@ -63,7 +59,6 @@ export const Login = ({ onLogin }: { onLogin: (user: User) => void }) => {
           </label>
           {error && <p className="error">{t.loginError}</p>}
           <button className="secondary wide" type="submit">{t.loginSubmit}</button>
-          <p className="hint">{t.demoAccount(demoUsername(role))}</p>
         </form>
       </section>
     </main>
