@@ -6,9 +6,9 @@ import { useT } from '../i18n'
 import { PatientBanner } from './PatientBanner'
 
 // Minimum step durations keep the stages readable during a live pitch
-const EXTRACT_MIN_MS = 2600
-const MATCH_MIN_MS = 2200
-const PHRASE_MS = 650
+const EXTRACT_MIN_MS = 2100
+const MATCH_MIN_MS = 3000
+const PHRASE_MS = 1000
 
 const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
