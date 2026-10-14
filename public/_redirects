@@ -1,0 +1,2 @@
+/video https://video.ainias.net 301
+/video/* https://video.ainias.net/:splat 301
