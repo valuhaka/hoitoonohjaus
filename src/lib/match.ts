@@ -38,9 +38,9 @@ const nearestPerService = (matches: Match[]): Match[] => [
     .values(),
 ]
 
-const located = (group: GroupListing, from: Coords) => ({
+const located = (group: GroupListing, from: Coords | null) => ({
   group,
-  distanceKm: group.coords ? distanceKm(from, group.coords) : null,
+  distanceKm: from && group.coords ? distanceKm(from, group.coords) : null,
   seatsLeft: seatsLeft(group),
 })
 
@@ -80,6 +80,9 @@ export const rankGroups = (
     )
 }
 
-// Browsing without a patient: every listing, no fit score, distances from a chosen reference point
-export const browseGroups = (from: Coords, groups: GroupListing[]): Match[] =>
-  nearestPerService(groups.map(group => ({ ...located(group, from), score: 0, matched: [] })))
+// Browsing without a patient: no fit score. With a reference point each service keeps its nearest
+// site; without one there is no nearest, so every site is listed and nothing has a distance.
+export const browseGroups = (from: Coords | null, groups: GroupListing[]): Match[] => {
+  const matches = groups.map(group => ({ ...located(group, from), score: 0, matched: [] }))
+  return from ? nearestPerService(matches) : matches
+}

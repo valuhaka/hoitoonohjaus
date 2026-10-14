@@ -8,14 +8,11 @@
 </head>
 <body>
 <main class="content">
+  <!-- LOCATION on (results page): the facts line carries the distance from home -->
   <div class="cards">
     <article class="card active">
-      <div class="card-rank">A</div>
       <div class="card-body">
-        <header>
-          <h3>Surusta selviytyminen</h3>
-          <span class="added">Lisätty 12.10.2026</span>
-        </header>
+        <h3>Surusta selviytyminen</h3>
         <p class="organiser">Kumppanuuskeskus Silta ry</p>
         <div class="facts">
           <span>Seuratie 2, Nummela</span>
@@ -27,53 +24,22 @@
           <span>Alkaa 5.11.2026 · ke 17.00–18.30</span>
           <span>FI</span>
         </div>
-        <div class="tags">
-          <span class="tag matched">Suru</span>
-          <span class="tag matched">Yksinäisyys</span>
-          <span class="tag matched">Masennus</span>
-        </div>
       </div>
       <div class="card-side">
         <span class="seats">4 vapaata paikkaa</span>
         <button class="primary">Lisätietoja</button>
       </div>
-    </article>
-
-    <article class="card">
-      <div class="card-rank">B</div>
-      <div class="card-body">
-        <header>
-          <h3>Unikoulu verkossa</h3>
-        </header>
-        <p class="organiser">LUVN Mielenterveys- ja päihdepalvelut</p>
-        <div class="facts">
-          <span>Etäryhmä (videoyhteys)</span>
-          <span>Etäryhmä</span>
-          <span>Maksuton</span>
-        </div>
-        <div class="facts muted">
-          <span>Unettomuuden KKT (KKT-I)</span>
-          <span>Alkaa 22.10.2026 · to 18.00–19.00</span>
-          <span>FI / SV</span>
-        </div>
-        <div class="tags">
-          <span class="tag matched">Unihäiriöt</span>
-          <span class="tag">Stressi</span>
-          <span class="tag">Uupumus</span>
-        </div>
+      <div class="tags">
+        <span class="tag matched">Suru</span>
+        <span class="tag matched">Yksinäisyys</span>
+        <span class="tag matched">Masennus</span>
       </div>
-      <div class="card-side">
-        <span class="seats">5 vapaata paikkaa</span>
-        <button class="primary">Lisätietoja</button>
-      </div>
+      <div class="card-rank">A</div>
     </article>
 
     <article class="card full">
-      <div class="card-rank">C</div>
       <div class="card-body">
-        <header>
-          <h3>Vakautusryhmä traumoista toipuville</h3>
-        </header>
+        <h3>Vakautusryhmä traumoista toipuville</h3>
         <p class="organiser">LUVN Aikuisten mielenterveyspalvelut, Lohja</p>
         <div class="facts">
           <span>Sairaalatie 8, Lohja</span>
@@ -85,15 +51,46 @@
           <span>Alkaa 21.10.2026 · to 13.00–14.30</span>
           <span>FI</span>
         </div>
-        <div class="tags">
-          <span class="tag matched">Traumat</span>
-          <span class="tag matched">Ahdistus</span>
-        </div>
       </div>
       <div class="card-side">
         <span class="seats none">Täynnä</span>
         <button class="primary">Lisätietoja</button>
       </div>
+      <div class="tags">
+        <span class="tag matched">Traumat</span>
+        <span class="tag">Ahdistus</span>
+      </div>
+      <div class="card-rank">B</div>
+    </article>
+  </div>
+
+  <!-- LOCATION off (treatment browser): no distance; remote listings still say so -->
+  <div class="cards">
+    <article class="card">
+      <div class="card-body">
+        <h3>Unikoulu verkossa</h3>
+        <p class="organiser">LUVN Mielenterveys- ja päihdepalvelut</p>
+        <div class="facts">
+          <span>Etäryhmä (videoyhteys)</span>
+          <span>Etäryhmä</span>
+          <span>Maksuton</span>
+        </div>
+        <div class="facts muted">
+          <span>Unettomuuden KKT (KKT-I)</span>
+          <span>Alkaa 22.10.2026 · to 18.00–19.00</span>
+          <span>FI / SV</span>
+        </div>
+      </div>
+      <div class="card-side">
+        <span class="seats">5 vapaata paikkaa</span>
+        <button class="primary">Lisätietoja</button>
+      </div>
+      <div class="tags">
+        <span class="tag">Unihäiriöt</span>
+        <span class="tag">Stressi</span>
+        <span class="tag">Uupumus</span>
+      </div>
+      <div class="card-rank">C</div>
     </article>
   </div>
 </main>

@@ -58,10 +58,10 @@ const contactElement = (kind: CareContactKind, label: string, name: string) => {
   return el
 }
 
-const homeElement = (label: string, icon: MapIconKind) => {
+const homeElement = (label: string) => {
   const el = document.createElement('div')
   el.className = 'map-home'
-  el.innerHTML = iconSvg(icon)
+  el.innerHTML = iconSvg('home')
   el.append(label)
   return el
 }
@@ -74,8 +74,6 @@ export const GroupMap = ({
   matches,
   all,
   home,
-  homeLabel,
-  homeIcon = 'home',
   zoomIn = true,
   contacts,
   range,
@@ -87,9 +85,6 @@ export const GroupMap = ({
   all: Match[]
   // null and [] when the patient's locations must not be shown (turvakielto)
   home: Coords | null
-  // When browsing, the reference point takes the place of home
-  homeLabel?: string
-  homeIcon?: MapIconKind
   // Zoom in from the overview to home when the map opens
   zoomIn?: boolean
   contacts: CareContact[]
@@ -99,7 +94,6 @@ export const GroupMap = ({
   onSelect: (groupId: string) => void
 }) => {
   const { t, lang } = useT()
-  const centreLabel = homeLabel ?? t.home
   const container = useRef<HTMLDivElement>(null)
   const map = useRef<maplibregl.Map | null>(null)
   const markers = useRef<maplibregl.Marker[]>([])
@@ -151,7 +145,7 @@ export const GroupMap = ({
       ...contacts.map(c =>
         new maplibregl.Marker({ element: contactElement(c.kind, t.map.kinds[c.kind], c.name), anchor: 'left', offset: [-11, 0] })
           .setLngLat([c.coords.lon, c.coords.lat])),
-      ...(home ? [new maplibregl.Marker({ element: homeElement(centreLabel, homeIcon), anchor: 'top', offset: [0, 18] }).setLngLat([home.lon, home.lat])] : []),
+      ...(home ? [new maplibregl.Marker({ element: homeElement(t.home), anchor: 'top', offset: [0, 18] }).setLngLat([home.lon, home.lat])] : []),
       ...located.map(({ match, rank, coords }) => {
         const classes = ['map-pin', match.seatsLeft === 0 && 'full', match.group.id === activeId && 'active']
         const el = pinElement(rank, classes.filter(Boolean).join(' '))
@@ -220,7 +214,7 @@ export const GroupMap = ({
           {expanded ? t.map.collapse : t.map.expand}
         </button>
         <ul className="map-legend">
-          {home && <li><Icon kind={homeIcon} />{centreLabel}</li>}
+          {home && <li><Icon kind="home" />{t.home}</li>}
           {kinds.map(kind => <li key={kind}><Icon kind={kind} />{t.map.kinds[kind]}</li>)}
           {contacts.length > 0 && <li><span className="key network" />{t.map.contacts}</li>}
           <li><span className="key group">A</span>{t.map.groups}</li>

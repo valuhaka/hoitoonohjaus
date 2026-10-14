@@ -4,7 +4,8 @@ import { ADAPTERS } from '../lib/booking'
 import { LUVN_MUNICIPALITIES, type Eligibility } from '../lib/eligibility'
 import type { Match } from '../lib/match'
 import { formatFee, useT } from '../i18n'
-import { distanceText, languagesText, scheduleLine, seatsText } from './format'
+import { languagesText, scheduleLine, seatsText } from './format'
+import { placeText } from './GroupCard'
 import { Modal } from './Modal'
 
 type Status =
@@ -39,11 +40,14 @@ const Criteria = ({ eligibility: e }: { eligibility: Eligibility }) => {
 
 export const BookingDialog = ({
   match,
+  location = true,
   referrer,
   onReserved,
   onClose,
 }: {
   match: Match
+  // Distance from home, as on the card
+  location?: boolean
   referrer: string
   // Without it the dialog only informs: browsing has no patient to reserve a seat for
   onReserved?: (reference: string) => void
@@ -74,7 +78,7 @@ export const BookingDialog = ({
       <dl className="details">
         <dt>{t.booking.method}</dt><dd>{group.method}</dd>
         <dt>{t.booking.location}</dt>
-        <dd>{[group.address, distanceText(group, distanceKm, lang)].filter(Boolean).join(' · ')}</dd>
+        <dd>{[group.address, placeText(group, distanceKm, location, lang)].filter(Boolean).join(' · ') || t.locationUnknown}</dd>
         {schedule && <><dt>{t.booking.schedule}</dt><dd>{schedule}</dd></>}
         <dt>{t.booking.languages}</dt><dd>{languagesText(group)}</dd>
         <dt>{t.booking.cost}</dt><dd>{formatFee(group.fee, lang)}</dd>

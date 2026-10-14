@@ -17,6 +17,9 @@ export const scheduleLine = (group: GroupListing, lang: Lang, withSessions = fal
     withSessions && group.sessions !== null && DICTS[lang].sessions(group.sessions),
   ].filter(Boolean).join(' · ')
 
+// Without a reference point only remote listings say anything about their place
+export const remoteText = (group: GroupListing, lang: Lang) => (group.format !== 'inPerson' ? DICTS[lang].remote : '')
+
 export const distanceText = (group: GroupListing, distanceKm: number | null, lang: Lang) =>
   distanceKm !== null
     ? DICTS[lang].km(distanceKm)

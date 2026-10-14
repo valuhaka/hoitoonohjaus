@@ -86,7 +86,7 @@ export const Results = ({
             {ranked.length === 0 && <p className="hint">{t.noMatches}</p>}
             {ranked.length > 0 && visible.length === 0 && <p className="hint">{t.noFilteredMatches}</p>}
             {visible.map((m, i) => (
-              <GroupCard key={m.group.id} match={m} rank={rankLabel(i)}
+              <GroupCard key={m.group.id} match={m} rank={rankLabel(i)} location
                 reserved={m.group.id in holds}
                 active={m.group.id === activeId}
                 cardRef={el => { if (el) cardRefs.current.set(m.group.id, el); else cardRefs.current.delete(m.group.id) }}

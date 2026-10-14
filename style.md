@@ -97,12 +97,17 @@ A dark green panel (`.processing`) with animated white strings (`.waves`, drawn 
 
 ### Treatment browser
 
-The home page after login (`.content.wide.home`) has the patient search (professionals) or the own-data panel (patients, proxies) on top, with generous space below it (`.home` gap 2.5rem, `.search-panel`), then "Selaa hoitoja" (`.browser`). It browses every listing without personal details, so it calculates no fit.
-- Layout (`.browser-layout`): the listings take the left half (`.browser-main`); the square map sits top right (`.map-panel`, not sticky here) with "Uudet hoidot" (`.newest`) under it. Below 900px wide, the order is map, newest, listings.
-- The filter bar is the same `FilterBar`. Two selects come first: "Etäisyys paikasta" (a LUVN municipal centre, default Lohja, `src/lib/places.ts`) and "Järjestys": nearest (default), most distant, cheapest, most expensive, A–Ö, Ö–A (`src/lib/sort.ts`). Unknown distances and fees go last in either direction.
-- Cards are the same `GroupCard` (`src/views/GroupCard.tsx`) with letters shared with the pins. Newest cards show "Lisätty d.m.yyyy" (`.added`) in the card header. A newest card whose listing is filtered out has no letter (`.card.unranked`). Three are shown; "Näytä lisää" (`button.secondary.wide`) shows ten.
-- On the map, the reference point uses the home box with a crosshair icon and the municipality name. There is no zoom-in and no care network.
-- "Lisätietoja" opens the same information dialog. Seats can't be reserved from it, because there is no patient; a hint says seats are booked from the search results.
+The home page after login (`.content.wide.home`) has the patient search (professionals) or the own-data panel (patients, proxies) on top. The search panel (`.search-panel`) has a taller input and button and a minimum height, so that with the page margins it fills about the top third of the window. Below it, after a 2.5rem gap, comes "Selaa hoitoja" (`.browser`). It browses every listing without personal details: there is no reference point, so there are no distances, no distance filter and no fit.
+- Layout (`.browser-layout`): the listings take the left two thirds (`.browser-main`); the square map (`.map-panel`, not sticky here) and "Uudet hoidot" (`.news`) share the right third. Below 900px wide, the order is map, news, listings.
+- The filter bar is the same `FilterBar` with `location={false}`, which hides the distance slider. "Järjestys" comes first: A–Ö (default), Ö–A, cheapest, most expensive (`src/lib/sort.ts`; the distance orders need a reference point). Unknown fees go last in either direction.
+- The cards are the same `GroupCard` with `location={false}`, and their letters match the map pins. Every site of a multi-site service is listed, since none is nearest.
+- News (`.news`) is a single card with a bulleted list (`.news-list`): the name as a link button (`.news-title`) that opens the information dialog, with "address, organiser" (`.news-meta`) under it. A service appears once. Three items are shown; "Näytä lisää" (`button.secondary.wide`) shows ten.
+- The map shows only the pins: no home, no distance rings and no care network. It shows every listing and does not zoom in.
+- "Lisätietoja" opens the same information dialog without distance. Seats can't be reserved from it, because there is no patient; a hint says seats are booked from the search results.
+
+### Group card
+
+`GroupCard` is used on the results page and in the browser. The title, organiser and facts are on the left; the seats and "Lisätietoja" are on the right. The tags run across the full card width below both. The letter (`.card-rank`) sits in the bottom right corner, and the tags keep room for it. Below 640px, seats and button go under the text. The `location` switch is on for the results page, where the facts include the distance from home. In the browser it is off: no distance, only "Etäryhmä" for remote listings.
 
 ### Map
 
@@ -152,8 +157,8 @@ Each component has a static reference file in `design/` (open `design/index.html
 | `processing.html` | `src/views/Processing.tsx` | `.processing`, `.waves`, `.steps`, `.step-icon`, `.phrase` |
 | `topic-list.html` | `src/views/Results.tsx` | `.tags.editable`, `.tag.matched`, `.tag-remove` |
 | `filters.html` | `src/views/FilterBar.tsx` | `.filters`, `label.suggested`, `.range-filter`, `.range` |
-| `group-card.html` | `src/views/GroupCard.tsx` | `.card`, `.card.active`, `.card.full`, `.card.unranked`, `.card-rank`, `.added`, `.seats` |
-| `treatment-browser.html` | `src/views/TreatmentBrowser.tsx` | `.home`, `.search-panel`, `.browser`, `.browser-layout`, `.browser-main`, `.newest` |
+| `group-card.html` (LOCATION on and off) | `src/views/GroupCard.tsx` | `.card`, `.card.active`, `.card.full`, `.card-rank`, `.seats` |
+| `treatment-browser.html` | `src/views/TreatmentBrowser.tsx` | `.home`, `.search-panel`, `.browser`, `.browser-layout`, `.browser-main`, `.news`, `.news-list`, `.news-title`, `.news-meta` |
 | `map.html` | `src/views/GroupMap.tsx`, `src/lib/basemap.ts` | `.results-layout`, `.map-panel`, `.map`, `.map-canvas`, `.map-pin`, `.map-home`, `.map-contact`, `.map-expand`, `.map-legend` |
 | `booking-dialog.html` | `src/views/BookingDialog.tsx` | `.modal.wide`, `.details`, `.criteria`, `.contact`, `.success`, `a.button` |
 | `statusbar.html` | `src/views/StatusBar.tsx` | `.statusbar`, `.status-light` |
@@ -162,6 +167,6 @@ Each component has a static reference file in `design/` (open `design/index.html
 
 - `.primary`: `--green-dark` fill with white text, hover `--green`. One per view region.
 - `.secondary`: white-to-pale-green gradient with a `#C5D6D0` outline, hover border `--green-light`.
-- `.segment`: language switch segments; the active one is filled `--green-dark`.
+- `.segment`: language switch segments; the active one is filled `--green-dark`. Their light is a quarter softer than on other buttons: a smaller top-to-bottom fade and a dimmer highlight line.
 - `.link`: text-only, `--green-dark`.
 - Focus: the shape's border turns `--green` (`--green-light` on primary buttons) and thickens to 2px.

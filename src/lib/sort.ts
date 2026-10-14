@@ -3,6 +3,8 @@ import type { Match } from './match'
 // Orders for browsing; browsing computes no fit, so there is no "best fit" order
 export type SortOrder = 'nearest' | 'farthest' | 'cheapest' | 'priciest' | 'nameAsc' | 'nameDesc'
 export const SORT_ORDERS: SortOrder[] = ['nearest', 'farthest', 'cheapest', 'priciest', 'nameAsc', 'nameDesc']
+// Orders that need a reference point
+export const DISTANCE_ORDERS: SortOrder[] = ['nearest', 'farthest']
 
 // Unknown values (remote groups, unpublished fees) go last in either direction
 const byValue = (a: number | null, b: number | null, direction: 1 | -1) =>

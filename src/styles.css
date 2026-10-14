@@ -126,6 +126,9 @@ button.link:focus-visible, button.tag-remove:focus-visible, button.titlebar-clos
   padding-left: calc(0.7rem + var(--slant) / 2);
 }
 .segment.active { --btn-bg: var(--green-dark); --btn-fg: #fff; --btn-border: var(--green-dark); }
+/* A quarter less light than other buttons: smaller fade and a dimmer highlight line */
+.segment { --btn-top: color-mix(in srgb, #edf3f1 25%, #fff); --highlight: inset 0 1px 0 rgb(255 255 255 / 0.225); }
+.segment.active { --btn-top: color-mix(in srgb, var(--green-dark) 89.5%, #fff); }
 .segment:hover:not(.active) { --btn-border: var(--green-light); }
 
 /* Badges */
@@ -321,7 +324,9 @@ textarea::placeholder, input::placeholder { color: #8a9893; }
 /* Group card */
 .cards { display: grid; gap: 1.5rem; }
 .card {
-  display: grid; grid-template-columns: auto 1fr auto; gap: var(--space); align-items: start;
+  /* TITLE / text on the left, seats / INFO on the right, tags across the full width, letter in the bottom right corner */
+  position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'body side' 'tags tags';
+  gap: var(--space); align-items: start;
   background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--green); padding: 1.5rem 1.5rem;
   box-shadow: var(--shadow-raised);
 }
@@ -331,18 +336,19 @@ textarea::placeholder, input::placeholder { color: #8a9893; }
   background: linear-gradient(#f2f9f6, var(--surface) 70%); box-shadow: 0 0 0 1px var(--green-light), var(--shadow-raised);
 }
 .card-rank {
-  min-width: 2rem; height: 2rem; padding: 0 0.3rem; color: var(--green-dark);
+  position: absolute; right: 1.5rem; bottom: 1.5rem; min-width: 2rem; height: 2rem; padding: 0 0.3rem; color: var(--green-dark);
   background: linear-gradient(#a6dacd, var(--green-light)); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.5);
   display: grid; place-items: center; font-weight: 700;
 }
-.card-body { display: grid; gap: 0.6rem; min-width: 0; }
-.card-body header { display: flex; justify-content: space-between; gap: var(--space); align-items: baseline; }
+.card-body { grid-area: body; display: grid; gap: 0.6rem; min-width: 0; }
+/* Room on the right for the letter */
+.card > .tags { grid-area: tags; padding-right: 3rem; min-height: 2rem; align-content: end; }
 .card-body h3 { margin: 0; }
 .fit { font-weight: 700; color: var(--green-dark); white-space: nowrap; }
 .organiser { margin: 0; font-weight: 500; }
 .facts { display: flex; flex-wrap: wrap; gap: 0.25rem 1.25rem; font-size: 0.9rem; }
 .facts.muted { color: var(--muted); font-size: 0.85rem; }
-.card-side { display: grid; gap: 0.5rem; justify-items: end; }
+.card-side { grid-area: side; display: grid; gap: 0.5rem; justify-items: end; }
 .seats { font-size: 0.85rem; font-weight: 600; color: var(--green-dark); white-space: nowrap; }
 .seats.none { color: var(--danger); }
 
@@ -404,18 +410,32 @@ textarea::placeholder, input::placeholder { color: #8a9893; }
 
 /* Treatment browser on the home page: listings left, square map and newest listings right */
 .home { gap: 2.5rem; }
-.search-panel { padding-block: 1.75rem; }
+/* With the page margins the search takes about the top third of the window */
+.search-panel {
+  min-height: calc((100vh - var(--topbar-h) - var(--statusbar-h)) / 3 - 4rem);
+  display: flex; flex-direction: column; justify-content: center;
+}
+.search-panel .search-row input { padding-block: 0.9rem; font-size: 1.1rem; }
+.search-panel .search-row button { padding-block: 0.95rem; font-size: 1.05rem; }
 .browser { display: grid; gap: var(--space); }
 .browser h2 { margin: 0; }
 .browser-layout {
-  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; align-items: start;
-  grid-template-areas: 'main map' 'main newest'; grid-template-rows: auto 1fr;
+  display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 1.5rem; align-items: start;
+  grid-template-areas: 'main map' 'main news'; grid-template-rows: auto 1fr;
 }
 .browser-main { grid-area: main; display: grid; gap: var(--space); min-width: 0; }
 .browser .map-panel { grid-area: map; position: relative; top: auto; }
-.newest { grid-area: newest; display: grid; gap: var(--space); min-width: 0; }
-.card.unranked { grid-template-columns: 1fr auto; }
-.added { font-size: 0.85rem; color: var(--muted); white-space: nowrap; }
+/* Newest listings: one card with a list, name and below it "address, organiser" */
+.news {
+  grid-area: news; display: grid; gap: 0.75rem; min-width: 0; padding: 1.25rem 1.5rem;
+  background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--green); box-shadow: var(--shadow-raised);
+}
+.news-list { margin: 0; padding-left: 1.1rem; display: grid; gap: 0.6rem; }
+.news-list li::marker { color: var(--green); }
+.news-list li { display: grid; justify-items: start; }
+button.news-title { padding: 0; font-weight: 600; text-align: left; }
+button.news-title:hover { text-decoration: underline; }
+.news-meta { font-size: 0.85rem; color: var(--muted); }
 
 /* Status bar */
 .statusbar {
@@ -434,15 +454,14 @@ textarea::placeholder, input::placeholder { color: #8a9893; }
 @media (max-width: 900px) {
   .results-layout { grid-template-columns: 1fr; }
   .map-panel { position: static; order: -1; max-width: 480px; width: 100%; justify-self: center; }
-  .browser-layout { grid-template-columns: minmax(0, 1fr); grid-template-areas: 'map' 'newest' 'main'; grid-template-rows: none; }
+  .browser-layout { grid-template-columns: minmax(0, 1fr); grid-template-areas: 'map' 'news' 'main'; grid-template-rows: none; }
 }
 
 @media (max-width: 640px) {
   .topbar { padding: 0.75rem var(--space); grid-template-columns: auto 1fr; }
   .topbar .brand { grid-row: 1; grid-column: 1 / -1; justify-self: center; }
-  .card { grid-template-columns: auto 1fr; }
-  .card-side { grid-column: 1 / -1; justify-items: stretch; }
-  .card.unranked { grid-template-columns: 1fr; }
+  .card { grid-template-columns: minmax(0, 1fr); grid-template-areas: 'body' 'side' 'tags'; }
+  .card-side { justify-items: stretch; }
   .search-row { flex-direction: column; align-items: stretch; }
   .statusbar > span:nth-child(4) { display: none; }
   .filters label { flex: 1 1 140px; min-width: 0; }

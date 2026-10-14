@@ -60,12 +60,15 @@ export const FilterBar = ({
   filters,
   guess = NO_GUESS,
   feeScale,
+  location = true,
   onChange,
   children,
 }: {
   filters: Filters
   guess?: FilterGuess
   feeScale: Scale
+  // Without a reference point there is no distance to filter by
+  location?: boolean
   onChange: (filters: Filters) => void
   children?: ReactNode
 }) => {
@@ -117,8 +120,10 @@ export const FilterBar = ({
         <RangeSlider label={f.cost} unit="€" value={filters.fee} scale={feeScale}
           suggestion={suggested('fee')} onChange={v => set('fee', v)} />
       )}
-      <RangeSlider label={f.distance} unit="km" value={filters.distanceKm} scale={DISTANCE_SCALE}
-        suggestion={suggested('distanceKm')} onChange={v => set('distanceKm', v)} />
+      {location && (
+        <RangeSlider label={f.distance} unit="km" value={filters.distanceKm} scale={DISTANCE_SCALE}
+          suggestion={suggested('distanceKm')} onChange={v => set('distanceKm', v)} />
+      )}
       {isActive(filters) && (
         <button className="secondary" onClick={() => onChange(NO_FILTERS)}>{f.reset}</button>
       )}

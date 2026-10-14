@@ -184,7 +184,6 @@ const fi = {
   },
   browser: {
     title: 'Selaa hoitoja',
-    from: 'Etäisyys paikasta',
     sort: 'Järjestys',
     sorts: {
       nearest: 'Lähin ensin',
@@ -195,7 +194,6 @@ const fi = {
       nameDesc: 'Aakkosjärjestys Ö–A',
     },
     newest: 'Uudet hoidot',
-    added: 'Lisätty',
     more: 'Näytä lisää',
     fewer: 'Näytä vähemmän',
     reserveViaSearch: 'Paikka varataan potilaan tietoihin perustuvan haun tuloksista.',
@@ -399,7 +397,6 @@ const sv: Dict = {
   },
   browser: {
     title: 'Bläddra bland behandlingar',
-    from: 'Avstånd från',
     sort: 'Sortering',
     sorts: {
       nearest: 'Närmast först',
@@ -410,7 +407,6 @@ const sv: Dict = {
       nameDesc: 'Alfabetisk Ö–A',
     },
     newest: 'Nya behandlingar',
-    added: 'Tillagd',
     more: 'Visa fler',
     fewer: 'Visa färre',
     reserveViaSearch: 'Platsen bokas från resultaten av en sökning som bygger på patientens uppgifter.',
@@ -612,7 +608,6 @@ const en: Dict = {
   },
   browser: {
     title: 'Browse treatments',
-    from: 'Distance from',
     sort: 'Sort by',
     sorts: {
       nearest: 'Nearest',
@@ -623,7 +618,6 @@ const en: Dict = {
       nameDesc: 'Alphabetical Z–A',
     },
     newest: 'New treatments',
-    added: 'Added',
     more: 'Show more',
     fewer: 'Show fewer',
     reserveViaSearch: 'Seats are booked from the results of a search based on the patient\'s data.',

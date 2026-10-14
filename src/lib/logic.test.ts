@@ -15,7 +15,6 @@ import { searchPatients } from './registry'
 import { ringPolygon } from './shapes'
 import { ageAt, isValidHetu } from './hetu'
 import { browseGroups, fitScore, idfWeights, rankGroups } from './match'
-import { DEFAULT_PLACE } from './places'
 import { newestFirst, SORT_ORDERS, sortMatches } from './sort'
 
 const NOW = new Date('2026-10-13T12:00:00Z')
@@ -341,13 +340,17 @@ describe('real listings in matching', () => {
 })
 
 describe('browsing', () => {
-  const from = DEFAULT_PLACE.coords
-  const all = browseGroups(from, GROUPS)
-  it('lists every listing without a fit score or personal details', () => {
+  // Lohja centre, for the distance orders the results page could use
+  const from = { lat: 60.2486, lon: 24.0653 }
+  const all = browseGroups(null, GROUPS)
+  it('lists every listing without a fit score, personal details or distances', () => {
     expect(all).toHaveLength(GROUPS.length)
-    all.forEach(m => { expect(m.score).toBe(0); expect(m.matched).toEqual([]) })
+    all.forEach(m => { expect(m.score).toBe(0); expect(m.matched).toEqual([]); expect(m.distanceKm).toBeNull() })
   })
-  it('includes the untagged real services and keeps one site per service', () => {
+  it('lists every site of the real services when there is no reference point', () => {
+    expect(browseGroups(null, CATALOGUE.real)).toHaveLength(CATALOGUE.real.length)
+  })
+  it('includes the untagged real services and keeps one site per service around a point', () => {
     const real = browseGroups(from, CATALOGUE.real)
     expect(new Set(real.map(m => m.group.serviceId)).size).toBe(real.length)
     expect(real.length).toBe(TREATMENTS.length)
