@@ -3,7 +3,7 @@ import type { Patient } from '../data/patients'
 import type { User } from '../lib/auth'
 import type { ExtractionInput } from '../lib/extraction'
 import { searchPatients, type AccessReason, type SearchResult } from '../lib/registry'
-import { useT } from '../i18n'
+import { placeName, useT } from '../i18n'
 import { DataSources } from './DataSources'
 import { Modal } from './Modal'
 
@@ -68,7 +68,7 @@ export const PatientSearch = ({
   user: User
   onOpen: (input: ExtractionInput, reason: AccessReason) => void
 }) => {
-  const { t } = useT()
+  const { t, lang } = useT()
   const [query, setQuery] = useState('')
   const [result, setResult] = useState<SearchResult | null>(null)
   const [loading, setLoading] = useState(false)
@@ -112,7 +112,7 @@ export const PatientSearch = ({
                   onKeyDown={e => e.key === 'Enter' && setSelected(p)}>
                   <td>{p.lastName}, {p.firstNames}</td>
                   <td className="mono">{p.hetu}</td>
-                  <td>{p.nonDisclosure ? <span className="badge danger">{t.nonDisclosure}</span> : p.municipality}</td>
+                  <td>{p.nonDisclosure ? <span className="badge danger">{t.nonDisclosure}</span> : placeName(p.municipality, lang)}</td>
                 </tr>
               ))}
             </tbody>

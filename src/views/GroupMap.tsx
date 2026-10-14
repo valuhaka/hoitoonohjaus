@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import * as maplibregl from 'maplibre-gl'
 import type { Feature, FeatureCollection, LineString } from 'geojson'
 import type { CareContact, CareContactKind } from '../data/patients'
-import { basemapAvailable, createBaseMap, pinElement } from '../lib/basemap'
+import { createBaseMap, loadBasemapStyle, pinElement } from '../lib/basemap'
 import { circlePolygon, ringPolygon } from '../lib/shapes'
 import type { Coords } from '../lib/geo'
 import type { Range } from '../lib/filters'
@@ -104,30 +104,39 @@ export const GroupMap = ({
   const [labels, setLabels] = useState(false)
   onSelectRef.current = onSelect
 
-  // Create the map once; label language is fixed at creation
+  // Create the map once the basemap is known; label language is fixed at creation
   useEffect(() => {
-    if (!container.current) return
-    const m = createBaseMap(container.current, lang)
-    m.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right')
-    m.on('load', () => {
-      m.addSource(NETWORK_SOURCE, { type: 'geojson', data: EMPTY })
-      m.addLayer({ id: 'network-line', type: 'line', source: NETWORK_SOURCE, paint: { 'line-color': '#7d8a86', 'line-width': 1.25, 'line-opacity': 0.8 } })
-      m.addSource(RADIUS_SOURCE, { type: 'geojson', data: EMPTY })
-      m.addLayer({
-        id: 'radius-fill', type: 'fill', source: RADIUS_SOURCE,
-        paint: { 'fill-color': '#89cabc', 'fill-opacity': ['case', ['get', 'fill'], 0.18, 0] },
+    const el = container.current
+    if (!el) return
+    let created: maplibregl.Map | null = null
+    let cancelled = false
+    loadBasemapStyle(lang).then(style => {
+      if (cancelled) return
+      if (!style) { setMissing(true); return }
+      setMissing(false)
+      const m = createBaseMap(el, style, t.map.controls)
+      created = m
+      m.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right')
+      m.on('load', () => {
+        m.addSource(NETWORK_SOURCE, { type: 'geojson', data: EMPTY })
+        m.addLayer({ id: 'network-line', type: 'line', source: NETWORK_SOURCE, paint: { 'line-color': '#7d8a86', 'line-width': 1.25, 'line-opacity': 0.8 } })
+        m.addSource(RADIUS_SOURCE, { type: 'geojson', data: EMPTY })
+        m.addLayer({
+          id: 'radius-fill', type: 'fill', source: RADIUS_SOURCE,
+          paint: { 'fill-color': '#89cabc', 'fill-opacity': ['case', ['get', 'fill'], 0.18, 0] },
+        })
+        m.addLayer({
+          id: 'radius-line', type: 'line', source: RADIUS_SOURCE,
+          paint: { 'line-color': '#008d70', 'line-width': 1.25, 'line-dasharray': [3, 3] },
+        })
+        setReady(true)
       })
-      m.addLayer({
-        id: 'radius-line', type: 'line', source: RADIUS_SOURCE,
-        paint: { 'line-color': '#008d70', 'line-width': 1.25, 'line-dasharray': [3, 3] },
-      })
-      setReady(true)
+      m.on('zoomend', () => setLabels(m.getZoom() >= CONTACT_LABEL_ZOOM))
+      map.current = created
     })
-    m.on('zoomend', () => setLabels(m.getZoom() >= CONTACT_LABEL_ZOOM))
-    map.current = m
-    basemapAvailable().then(ok => setMissing(!ok))
     return () => {
-      m.remove()
+      cancelled = true
+      created?.remove()
       map.current = null
       setReady(false)
     }
@@ -217,7 +226,7 @@ export const GroupMap = ({
           {home && <li><Icon kind="home" />{t.home}</li>}
           {kinds.map(kind => <li key={kind}><Icon kind={kind} />{t.map.kinds[kind]}</li>)}
           {contacts.length > 0 && <li><span className="key network" />{t.map.contacts}</li>}
-          <li><span className="key group">A</span>{t.map.groups}</li>
+          <li><span className="key group">{rankLabel(0)}</span>{t.map.groups}</li>
         </ul>
         {missing && <p className="map-missing">{t.mapMissing}</p>}
       </div>

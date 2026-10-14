@@ -1,6 +1,6 @@
 import type { GroupListing } from '../data/groups'
 import type { Gender, SessionType } from '../data/treatments'
-import type { ExtractedConstraint } from './extraction'
+import type { Evidence, ExtractedConstraint } from './extraction'
 import type { Match } from './match'
 
 export type TimeOfDay = 'any' | 'daytime' | 'evening'
@@ -83,7 +83,7 @@ export const applyFilters = (matches: Match[], filters: Filters, now: Date): Mat
       servesGender(group.genders, filters.gender),
   )
 
-export type FilterGuess = { filters: Filters; reasons: Partial<Record<keyof Filters, string>> }
+export type FilterGuess = { filters: Filters; reasons: Partial<Record<keyof Filters, Evidence>> }
 
 const GUESSED_MAX_DISTANCE_KM = 25
 const GUESSED_MAX_FEE = 10

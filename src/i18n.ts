@@ -8,10 +8,21 @@ const LOCALES: Record<Lang, string> = { fi: 'fi-FI', sv: 'sv-FI', en: 'en-GB' }
 const fi = {
   appName: 'Psyykkeri',
   org: 'Länsi-Uudenmaan hyvinvointialue',
-  dataSource: {
-    synthetic: 'DEMO · synteettinen data',
-    real: 'Todelliset palvelut',
-    toggle: 'Vaihda synteettisten demoryhmien ja todellisten palvelujen välillä. Potilaat ovat aina synteettisiä.',
+  langSwitch: 'Kieli',
+  menu: { open: 'Avaa valikko', close: 'Sulje valikko' },
+  ageEvidence: (age: number) => `Ikä ${age} v (henkilötunnus)`,
+  titles: { psychologist: 'Psykologi' },
+  kinds: {
+    group: 'Ryhmähoito',
+    peerGroup: 'Vertaisryhmä',
+    individual: 'Yksilötapaamiset',
+    dropIn: 'Matalan kynnyksen keskusteluapu',
+    helpline: 'Auttava puhelin',
+    chat: 'Chat',
+    online: 'Nettiterapia',
+    selfCare: 'Omahoito',
+    organisation: 'Järjestö',
+    specialist: 'Erikoispalvelu',
   },
   loginTitle: 'Kirjaudu sisään',
   loginOr: 'tai',
@@ -21,7 +32,7 @@ const fi = {
   loginError: 'Virheellinen käyttäjätunnus tai salasana',
   logout: 'Kirjaudu ulos',
   searchLabel: 'Hae nimellä tai henkilötunnuksella',
-  searchPlaceholder: 'Nimi, henkilötunnus tai syntymäaika, missä järjestyksessä tahansa',
+  searchPlaceholder: 'Nimi, henkilötunnus tai syntymäaika (esim. Aino Virtanen 120358-912J)',
   search: 'Hae',
   invalidHetu: 'Henkilötunnus ei ole kelvollinen. Tarkista tarkiste.',
   tooLittle: 'Anna vähintään kaksi tietoa: nimiä tai syntymäaika, tai koko henkilötunnus.',
@@ -75,7 +86,7 @@ const fi = {
   home: 'Koti',
   mapLabel: 'Ryhmät kartalla',
   status: { connected: 'Yhdistetty: LUVN', synced: (time: string) => `Synkronoitu ${time}` },
-  mapMissing: 'Karttatiedosto puuttuu (public/maps/uusimaa.pmtiles).',
+  mapMissing: 'Karttaa ei voitu ladata: verkkokartta ei vastaa eikä karttatiedostoa ole (public/maps/uusimaa.pmtiles).',
   phrases: [
     ['Luetaan potilaskertomusta', 'Tunnistetaan oireita', 'Tulkitaan elämäntilannetta', 'Arvioidaan motivaatiota', 'Huomioidaan liikkumarajoitteet'],
     ['Etsitään ryhmiä', 'Painotetaan harvinaisia aiheita', 'Lasketaan etäisyyksiä', 'Verrataan aikatauluja', 'Tarkistetaan vapaita paikkoja'],
@@ -148,6 +159,16 @@ const fi = {
     excludes: 'Ei sovellu, jos',
   },
   map: {
+    // MapLibre's own control texts
+    controls: {
+      'Map.Title': 'Kartta',
+      'Marker.Title': 'Karttamerkki',
+      'NavigationControl.ZoomIn': 'Lähennä',
+      'NavigationControl.ZoomOut': 'Loitonna',
+      'NavigationControl.ResetBearing': 'Palauta pohjoinen ylös',
+      'AttributionControl.ToggleAttribution': 'Näytä tai piilota lähteet',
+      'Popup.Close': 'Sulje',
+    },
     expand: 'Suurenna kartta',
     collapse: 'Pienennä kartta',
     contacts: 'Nykyiset SOTE-yhteydet',
@@ -183,7 +204,7 @@ const fi = {
     genders: { any: 'Kaikki', male: 'Mies', female: 'Nainen', other: 'Muu' },
   },
   browser: {
-    title: 'Selaa hoitoja',
+    title: 'Selaa hoitoja vapaasti',
     sort: 'Järjestys',
     sorts: {
       nearest: 'Lähin ensin',
@@ -221,10 +242,21 @@ type Dict = typeof fi
 const sv: Dict = {
   appName: 'Psyykkeri',
   org: 'Västra Nylands välfärdsområde',
-  dataSource: {
-    synthetic: 'DEMO · syntetiska data',
-    real: 'Verkliga tjänster',
-    toggle: 'Växla mellan syntetiska demogrupper och verkliga tjänster. Patienterna är alltid syntetiska.',
+  langSwitch: 'Språk',
+  menu: { open: 'Öppna menyn', close: 'Stäng menyn' },
+  ageEvidence: (age: number) => `Ålder ${age} år (personbeteckning)`,
+  titles: { psychologist: 'Psykolog' },
+  kinds: {
+    group: 'Gruppbehandling',
+    peerGroup: 'Kamratstödsgrupp',
+    individual: 'Individuella besök',
+    dropIn: 'Lågtröskelsamtal',
+    helpline: 'Stödtelefon',
+    chat: 'Chatt',
+    online: 'Nätterapi',
+    selfCare: 'Egenvård',
+    organisation: 'Organisation',
+    specialist: 'Specialtjänst',
   },
   loginTitle: 'Logga in',
   loginOr: 'eller',
@@ -234,7 +266,7 @@ const sv: Dict = {
   loginError: 'Fel användarnamn eller lösenord',
   logout: 'Logga ut',
   searchLabel: 'Sök med namn eller personbeteckning',
-  searchPlaceholder: 'Namn, personbeteckning eller födelsedatum, i valfri ordning',
+  searchPlaceholder: 'Namn, personbeteckning eller födelsedatum (t.ex. Aino Virtanen 120358-912J)',
   search: 'Sök',
   invalidHetu: 'Ogiltig personbeteckning. Kontrollera kontrolltecknet.',
   tooLittle: 'Ange minst två uppgifter: namn eller födelsedatum, eller hela personbeteckningen.',
@@ -288,7 +320,7 @@ const sv: Dict = {
   home: 'Hem',
   mapLabel: 'Grupperna på kartan',
   status: { connected: 'Ansluten: LUVN', synced: (time: string) => `Synkroniserad ${time}` },
-  mapMissing: 'Kartfilen saknas (public/maps/uusimaa.pmtiles).',
+  mapMissing: 'Kartan kunde inte laddas: webbkartan svarar inte och kartfilen saknas (public/maps/uusimaa.pmtiles).',
   phrases: [
     ['Läser patientjournalen', 'Identifierar symtom', 'Tolkar livssituationen', 'Bedömer motivationen', 'Beaktar rörelsebegränsningar'],
     ['Söker grupper', 'Viktar ovanliga teman', 'Beräknar avstånd', 'Jämför scheman', 'Kontrollerar lediga platser'],
@@ -361,6 +393,16 @@ const sv: Dict = {
     excludes: 'Lämpar sig inte vid',
   },
   map: {
+    // MapLibre's own control texts
+    controls: {
+      'Map.Title': 'Karta',
+      'Marker.Title': 'Kartmarkör',
+      'NavigationControl.ZoomIn': 'Zooma in',
+      'NavigationControl.ZoomOut': 'Zooma ut',
+      'NavigationControl.ResetBearing': 'Återställ norr uppåt',
+      'AttributionControl.ToggleAttribution': 'Visa eller dölj källor',
+      'Popup.Close': 'Stäng',
+    },
     expand: 'Förstora kartan',
     collapse: 'Förminska kartan',
     contacts: 'Nuvarande social- och hälsovårdskontakter',
@@ -396,7 +438,7 @@ const sv: Dict = {
     genders: { any: 'Alla', male: 'Man', female: 'Kvinna', other: 'Annat' },
   },
   browser: {
-    title: 'Bläddra bland behandlingar',
+    title: 'Bläddra fritt bland behandlingar',
     sort: 'Sortering',
     sorts: {
       nearest: 'Närmast först',
@@ -432,10 +474,21 @@ const sv: Dict = {
 const en: Dict = {
   appName: 'Psyykkeri',
   org: 'Western Uusimaa Wellbeing Services County',
-  dataSource: {
-    synthetic: 'DEMO · synthetic data',
-    real: 'Real services',
-    toggle: 'Switch between synthetic demo groups and real services. Patients are always synthetic.',
+  langSwitch: 'Language',
+  menu: { open: 'Open menu', close: 'Close menu' },
+  ageEvidence: (age: number) => `Age ${age} (personal identity code)`,
+  titles: { psychologist: 'Psychologist' },
+  kinds: {
+    group: 'Group treatment',
+    peerGroup: 'Peer support group',
+    individual: 'Individual appointments',
+    dropIn: 'Low-threshold conversation help',
+    helpline: 'Helpline',
+    chat: 'Chat',
+    online: 'Online therapy',
+    selfCare: 'Self-care',
+    organisation: 'Organisation',
+    specialist: 'Specialist service',
   },
   loginTitle: 'Sign in',
   loginOr: 'or',
@@ -445,7 +498,7 @@ const en: Dict = {
   loginError: 'Invalid username or password',
   logout: 'Sign out',
   searchLabel: 'Search by name or identity code',
-  searchPlaceholder: 'Name, identity code or date of birth, in any order',
+  searchPlaceholder: 'Name, identity code or date of birth (e.g. Aino Virtanen 120358-912J)',
   search: 'Search',
   invalidHetu: 'Invalid personal identity code. Check the control character.',
   tooLittle: 'Enter at least two details: names or date of birth, or the full identity code.',
@@ -499,7 +552,7 @@ const en: Dict = {
   home: 'Home',
   mapLabel: 'Groups on the map',
   status: { connected: 'Connected: LUVN', synced: (time: string) => `Synced ${time}` },
-  mapMissing: 'Map file missing (public/maps/uusimaa.pmtiles).',
+  mapMissing: 'The map could not be loaded: the online map does not respond and the map file is missing (public/maps/uusimaa.pmtiles).',
   phrases: [
     ['Reading the patient record', 'Identifying symptoms', 'Interpreting life situation', 'Assessing motivation', 'Considering mobility limitations'],
     ['Searching for groups', 'Weighting rare topics', 'Calculating distances', 'Comparing schedules', 'Checking available seats'],
@@ -572,6 +625,16 @@ const en: Dict = {
     excludes: 'Not suitable with',
   },
   map: {
+    // MapLibre's own control texts
+    controls: {
+      'Map.Title': 'Map',
+      'Marker.Title': 'Map marker',
+      'NavigationControl.ZoomIn': 'Zoom in',
+      'NavigationControl.ZoomOut': 'Zoom out',
+      'NavigationControl.ResetBearing': 'Reset bearing to north',
+      'AttributionControl.ToggleAttribution': 'Show or hide sources',
+      'Popup.Close': 'Close',
+    },
     expand: 'Enlarge map',
     collapse: 'Shrink map',
     contacts: 'Current care contacts',
@@ -607,7 +670,7 @@ const en: Dict = {
     genders: { any: 'Any', male: 'Male', female: 'Female', other: 'Other' },
   },
   browser: {
-    title: 'Browse treatments',
+    title: 'Browse treatments freely',
     sort: 'Sort by',
     sorts: {
       nearest: 'Nearest',
@@ -641,6 +704,16 @@ const en: Dict = {
 }
 
 export const DICTS: Record<Lang, Dict> = { fi, sv, en }
+
+// Official Swedish names of the region's municipalities; Finnish and English use the Finnish name
+const SWEDISH_NAMES: Record<string, string> = {
+  Espoo: 'Esbo', Hanko: 'Hangö', Inkoo: 'Ingå', Karkkila: 'Högfors', Kauniainen: 'Grankulla',
+  Kirkkonummi: 'Kyrkslätt', Lohja: 'Lojo', Raasepori: 'Raseborg', Siuntio: 'Sjundeå', Vihti: 'Vichtis',
+  Helsinki: 'Helsingfors', Vantaa: 'Vanda',
+}
+
+export const placeName = (municipality: string, lang: Lang) =>
+  lang === 'sv' ? SWEDISH_NAMES[municipality] ?? municipality : municipality
 
 export const formatDate = (iso: string, lang: Lang) =>
   new Date(iso).toLocaleDateString(LOCALES[lang])

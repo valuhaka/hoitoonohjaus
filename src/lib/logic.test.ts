@@ -348,15 +348,15 @@ describe('browsing', () => {
     all.forEach(m => { expect(m.score).toBe(0); expect(m.matched).toEqual([]); expect(m.distanceKm).toBeNull() })
   })
   it('lists every site of the real services when there is no reference point', () => {
-    expect(browseGroups(null, CATALOGUE.real)).toHaveLength(CATALOGUE.real.length)
+    expect(browseGroups(null, CATALOGUE)).toHaveLength(CATALOGUE.length)
   })
   it('includes the untagged real services and keeps one site per service around a point', () => {
-    const real = browseGroups(from, CATALOGUE.real)
+    const real = browseGroups(from, CATALOGUE)
     expect(new Set(real.map(m => m.group.serviceId)).size).toBe(real.length)
     expect(real.length).toBe(TREATMENTS.length)
   })
   it('sorts by distance and fee with unknown values last in both directions', () => {
-    const real = browseGroups(from, CATALOGUE.real)
+    const real = browseGroups(from, CATALOGUE)
     const distances = (order: 'nearest' | 'farthest') => sortMatches(real, order, 'fi').map(m => m.distanceKm)
     const near = distances('nearest')
     const far = distances('farthest')

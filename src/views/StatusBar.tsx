@@ -14,7 +14,7 @@ export const StatusBar = ({ user, syncedAt }: { user: User | null; syncedAt: Dat
         <>
           <span><span className="status-light" aria-hidden="true" />{t.status.connected}</span>
           <span>{t.status.synced(formatTime(clock(syncedAt), lang))}</span>
-          <span>{user.title ? `${user.name} · ${user.title}` : user.name}</span>
+          <span>{user.title ? `${user.name} · ${t.titles[user.title]}` : user.name}</span>
         </>
       )}
     </footer>

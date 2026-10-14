@@ -1,7 +1,7 @@
 // Map reference for design/map.html, built on the same basemap module as the app
 import 'maplibre-gl/dist/maplibre-gl.css'
 import * as maplibregl from 'maplibre-gl'
-import { createBaseMap, pinElement } from '../src/lib/basemap.ts'
+import { createBaseMap, loadBasemapStyle, pinElement } from '../src/lib/basemap.ts'
 import { ringPolygon } from '../src/lib/shapes.ts'
 import { iconSvg } from '../src/views/mapIcons.ts'
 
@@ -38,7 +38,9 @@ const pins = [
   { lat: 59.9739, lon: 23.4381, rank: 'C', cls: 'map-pin' },
   { lat: 60.2563, lon: 24.0451, rank: 'D', cls: 'map-pin full' },
 ]
-const map = createBaseMap(document.getElementById('map')!, 'fi')
+const style = await loadBasemapStyle('fi')
+if (!style) throw new Error('No basemap: the online map does not respond and public/maps/uusimaa.pmtiles is missing')
+const map = createBaseMap(document.getElementById('map')!, style, {})
 map.on('load', () => {
   map.addSource('network', { type: 'geojson', data: network })
   map.addLayer({ id: 'network-line', type: 'line', source: 'network', paint: { 'line-color': '#7d8a86', 'line-width': 1.25, 'line-opacity': 0.8 } })

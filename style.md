@@ -6,7 +6,8 @@ Single source of styling: `src/styles.css`. The React app imports it, and the st
 
 - **Name:** Psyykkeri. The name is the same in every UI language.
 - **Font:** [Cabin](https://fonts.google.com/specimen/Cabin), weights 400/500/600/700, loaded via `@import` at the top of `src/styles.css`. Fallback: `system-ui`.
-- **Wordmark:** "Psyykkeri" set in Cabin 700, `--green-dark`, centred in the top bar. No logo mark yet.
+- **Wordmark:** "Psyykkeri" set in The Seasons Bold, `--green-dark`, centred in the top bar. The Seasons is a licensed font and is not committed. An installed copy is used, otherwise `public/fonts/the-seasons-bold.woff2` (or `.otf`) once added (see README.md). Until then the wordmark falls back to Georgia/serif. Everything else stays in Cabin.
+- **Logo:** the doctor cat (`public/logo/doctorcat.png`, transparent background) sits left of the wordmark (`.brand-logo`). It is 3.4rem tall, and negative margins trim the file's empty margins so the top bar keeps its height. It is decorative (`alt=""`), because the name stands next to it.
 
 ## Colour
 
@@ -20,7 +21,6 @@ Single source of styling: `src/styles.css`. The React app imports it, and the st
 | `--text` / `--muted` | `#1A2A26` / `#52645F` | Body text / secondary text |
 | `--border` | `#D3E2DD` | All 1px borders |
 | `--danger` / `--danger-bg` | `#B42318` / `#FDECEA` | Errors, non-disclosure (turvakielto), full groups |
-| `--warning` / `--warning-bg` | `#7A5600` / `#FFF4D6` | Data source switch while it shows synthetic data |
 | network grey | `#7D8A86` | Map only: the patient's care contacts and the lines between them. Kept grey so groups stay the green focus |
 
 **Contrast rule:** `#008D70` on white is about 4.2:1, which fails WCAG AA for normal-size text. Use it for lines, fills and large or decorative elements only. Green text and white-on-green buttons use `#015742` (about 8.6:1). `#015742` on `#89CABC` is about 4.6:1, which is fine for the bold rank number.
@@ -52,21 +52,49 @@ Depth comes from light, never from decoration. Raised surfaces are slightly lit 
 - Panels: white, 1px `--border`, 1.5rem padding.
 - Accent edges: 3px `--green` bottom border on the top bar and top border on dialogs, 4px `--green` left border on group cards. The active (hovered or map-selected) card gets a `--green-light` outline.
 - Content column max width 960px (`.content`). The results page uses `.content.wide` (1280px): `.results-main` (topics, filters, cards) on the left and the sticky map on the right, both starting right under the patient banner. 1rem side gutter.
-- The top bar (`--topbar-h`) is sticky and the status bar (`--statusbar-h`) is fixed; the map panel's height is derived from both so it always fits the window.
+- The top bar (`--topbar-h`) is sticky and the status bar (`--statusbar-h`) is fixed; the map panel's height is derived from both so it always fits the window. On short landscape screens (height ≤ 500px, phones on their side) both bars scroll with the page instead, so they don't take a quarter of the height.
+- **Responsive layout:**
+  - Up to 720px wide, the top bar shows a menu button, the logo and the wordmark. The controls move into a panel under the bar (see Top bar).
+  - Single column: list and map stack, map first, in portrait up to 900px wide and in any orientation up to 560px. Landscape keeps them side by side, and the results map is never taller than the window.
+  - Up to 640px wide, cards stack their seats and button under the text, filters wrap two per row and the search button goes under the input.
+  - Dialogs use the dynamic viewport height (`100dvh`), so the phone's browser bars don't hide their buttons. No page may scroll sideways at 360px.
 - Top bar layout, three columns: left the "Etusivu" button (signed in only; returns to the screen right after login) and the data source switch, centre the wordmark "Psyykkeri" alone (the organisation name lives in the status bar), right the language switch and sign out.
 - Spacing: cards are 1.5rem apart with 1.5rem padding.
 - Checkboxes and radios use the native control with `accent-color: --green-dark`. A checkbox row is `label.check` (box left, text wrapping beside it).
 
 ## Content rules
 
-- **No emojis or pictograms** in the UI. Use text labels. The one exception is map markers and the map legend, which use the line icons in `src/views/mapIcons.ts` (home, health centre, mental health services, hospital, social work, school, student health care): 16×16, 1.5px strokes in `currentColor`, no fills.
+- **No emojis or pictograms** in the UI. Use text labels. The exceptions are the brand logo in the top bar, the menu button on narrow screens (three bars, labelled for screen readers), and map markers and the map legend, which use the line icons in `src/views/mapIcons.ts` (home, health centre, mental health services, hospital, social work, school, student health care): 16×16, 1.5px strokes in `currentColor`, no fills.
 - **No hashtag notation.** Topics are shown as plain words with an initial capital (Yksinäisyys, Krooninen kipu). The `#` ids exist only in data and the extraction prompt.
 - **No explanatory subtitles** that repeat what the screen already shows (result counts, "update instantly" hints, data source lines, eyebrow labels above dialog titles). Keep notices with legal or safety meaning (the access log notice, identity confirmation).
 - **Distances:** number and unit only (`17 km`). Remote groups say "Etäryhmä".
-- **Languages:** Finnish (default), Swedish, English. All strings live in `src/i18n.ts`; dates, times and fees are formatted per locale (`fi-FI`, `sv-FI`, `en-GB`). Group names and methods are listing data and stay in the language the organiser wrote them in.
+- **Languages:** Finnish (default), Swedish, English. Dates, times and fees are formatted per locale (`fi-FI`, `sv-FI`, `en-GB`), and municipalities use their Swedish names in Swedish (`placeName`). No language may leak into another (see below).
 - **Explanations go in tooltips:** extracted topics and suggested filters show their evidence sentence in a `title` tooltip, not as visible text.
 
+## Language rule: no leaks between languages
+
+**Must come from `src/i18n.ts`, in all three languages:** every string the app itself writes, whether visible or announced. That covers:
+- JSX text, button labels and `<option>` texts;
+- `aria-label`, `title` and `placeholder` attributes, including tooltips built from evidence;
+- MapLibre's own control texts (`t.map.controls`, passed as the map `locale`);
+- codes the UI words: professional titles (`t.titles`), listing kinds (`t.kinds`), derived evidence such as the age (`ageEvidence`), enrolment states and criteria.
+
+Data must not carry UI wording. Store a key or a value (`{ age: 68 }`, `title: 'psychologist'`, `kind: 'peerGroup'`) and let the view word it with `t`.
+
+**Stays as written:** text that organisers or records publish. That means group names, organisers, addresses, the organisers' own method names and criteria notes, contact names and roles, and patient record texts. Proper nouns (Psyykkeri, Terapianavigaattori, OpenStreetMap) and language codes (FI / SV) are the same in every language.
+
+**Enforced by:**
+1. **Types.** `sv` and `en` are typed as `Dict = typeof fi`, so a key missing from any language fails `tsc`.
+2. **`src/lib/i18n.test.ts`,** run by `npm test`. It fails on words written directly between JSX tags and on words in quoted `aria-label`, `title`, `placeholder` or `alt` attributes in `src/**/*.tsx`. It also checks that all three dictionaries have the same keys. Write `{t.x}` instead; a sample rank letter uses `rankLabel(0)`.
+3. **A sweep before release.** Switch the running app to SV and then EN and go through every screen and dialog. Collect the text nodes plus `aria-label`, `title` and `placeholder` values, and compare them with the dictionaries. Anything that is neither in that language's dictionary nor listing or record data is a leak. The static checks can't see strings built in `.ts` files, so the sweep is what catches those.
+
 ## Screens and components
+
+### Top bar
+
+Wide screens: home button left (`.topbar-left`), logo and wordmark centred (`.brand`), language switch and logout right (`.topbar-right`). The two control groups sit in a wrapper (`.topbar-menu`) that is `display: contents` here, so they take the bar's outer grid columns.
+
+Up to 720px wide, a square menu button (`.menu-toggle`, three 2px bars in `--green-dark`, `aria-expanded`, labelled "Avaa valikko"/"Sulje valikko") takes the left column, and the wordmark stays centred. The wrapper opens as a panel under the bar (`.menu-open .topbar-menu`): white, a 3px `--green` bottom border and the window shadow. Its first row is the full-width home button; the second has the language switch on the left and logout on the right. Choosing anything, pressing Escape or clicking outside closes it; Escape returns focus to the menu button. Before login the panel holds only the language switch.
 
 ### Login
 
@@ -97,7 +125,12 @@ A dark green panel (`.processing`) with animated white strings (`.waves`, drawn 
 
 ### Treatment browser
 
-The home page after login (`.content.wide.home`) has the patient search (professionals) or the own-data panel (patients, proxies) on top. The search panel (`.search-panel`) has a taller input and button and a minimum height, so that with the page margins it fills about the top third of the window. Below it, after a 2.5rem gap, comes "Selaa hoitoja" (`.browser`). It browses every listing without personal details: there is no reference point, so there are no distances, no distance filter and no fit.
+The home page after login (`.content.wide.home`) has the patient search (professionals) or the own-data panel (patients, proxies) on top. The search is the focus. The hero (`.home-hero`) fills the first screen, using `100svh` so phone browser bars don't push it off. Its rows are 2fr / 1fr / auto: the search panel is centred in the upper two thirds, at about a third of the height, and the browse button sits at the bottom, just above the status bar. The search panel (`.search-panel`) has a taller input and button.
+- **Browse button:** "Selaa hoitoja vapaasti" (`button.primary.browse-button`) has the same green and sheen as Hae, and the same face, size and weight as the text in the search field (Cabin 400, 1.1rem).
+- **Browser:** "Selaa hoitoja vapaasti" (`.browser`) is always rendered, starting just below the first screen after the 2.5rem gap, so it is out of sight until scrolled to.
+- **On press:** the button scrolls the page there (it jumps with reduced motion; `scroll-margin-top` clears the sticky top bar) and moves focus to the browser's heading.
+
+A panel taller than the screen, such as the patients' own-data panel, simply grows. It browses every listing without personal details: there is no reference point, so there are no distances, no distance filter and no fit.
 - Layout (`.browser-layout`): the listings take the left two thirds (`.browser-main`); the square map (`.map-panel`, not sticky here) and "Uudet hoidot" (`.news`) share the right third. Below 900px wide, the order is map, news, listings.
 - The filter bar is the same `FilterBar` with `location={false}`, which hides the distance slider. "Järjestys" comes first: A–Ö (default), Ö–A, cheapest, most expensive (`src/lib/sort.ts`; the distance orders need a reference point). Unknown fees go last in either direction.
 - The cards are the same `GroupCard` with `location={false}`, and their letters match the map pins. Every site of a multi-site service is listed, since none is nearest.
@@ -111,7 +144,7 @@ The home page after login (`.content.wide.home`) has the patient search (profess
 
 ### Map
 
-MapLibre GL with an offline Protomaps basemap (`public/maps/`, see README.md), set up in `src/lib/basemap.ts`. The Protomaps "light" flavour is recoloured towards the palette (mint water, green-grey land and parks). Map labels follow the UI language. The map is square and sits sticky to the right of the cards (`.results-layout`, `.map-panel`). Below 900px wide, it moves above the cards. "Suurenna kartta" (`.map-expand`) opens it as a window over the page (`.map.expanded` with a `.map-backdrop`); Escape or the backdrop closes it. A small legend (`.map-legend`) sits bottom left.
+MapLibre GL, set up in `src/lib/basemap.ts`. The basemap is the offline Protomaps extract when `public/maps/uusimaa.pmtiles` is present, otherwise OpenFreeMap's online vector tiles (see README.md). Both are recoloured towards the palette (mint water, green-grey land and parks): the Protomaps "light" flavour offline, and OpenFreeMap "positron" online with the same colours swapped in. Map labels follow the UI language. The map is square and sits sticky to the right of the cards (`.results-layout`, `.map-panel`). Below 900px wide, it moves above the cards. "Suurenna kartta" (`.map-expand`) opens it as a window over the page (`.map.expanded` with a `.map-backdrop`); Escape or the backdrop closes it. A small legend (`.map-legend`) sits bottom left.
 - Opening animation: the map first shows every matching treatment, then zooms in to a 15 km radius around the patient's home.
 - The distance filter is drawn as a donut: dashed circles at the minimum and maximum distance, with the band between them tinted. Without an upper limit only the inner circle is drawn.
 - Results are labelled with letters, the same on cards and pins: A–Z, then AA–ZZ (`src/lib/rank.ts`). Rank squares and pins widen for two letters.
@@ -122,11 +155,9 @@ MapLibre GL with an offline Protomaps basemap (`public/maps/`, see README.md), s
 - **Patients with a non-disclosure order (turvakielto) get no home marker, no circle and no care network**, except when the patients themselves are signed in.
 - Hovering a card highlights its pin, and clicking a pin scrolls to its card. Coordinates are WGS84.
 
-### Data source switch
+### Real listings
 
-`.data-switch` sits next to the wordmark, in the slot of the former demo badge. It is a badge-sized `role="switch"` with a small rectangular track and knob, and switches the listings between the synthetic demo groups and the real services (`src/data/listings.ts`). Showing synthetic data it keeps the warning colours and reads "DEMO · synteettinen data"; showing real data it turns `--tint` with `--green-dark` text. The tooltip says that patients are always synthetic. It has no slanted button shape.
-
-Real listings often lack seat counts, start dates or prices. Cards then show the organiser's enrolment status ("Ryhmä käynnissä", "Täynnä", "Lähetteellä"), the free-text schedule, or "Hinta ei tiedossa"; unknown values never filter a listing out.
+The app shows only the real services (`src/data/listings.ts`). The synthetic groups in `src/data/groups.ts` are test fixtures. Real listings often lack seat counts, start dates or prices. Cards then show the organiser's enrolment status ("Ryhmä käynnissä", "Täynnä", "Lähetteellä"), the free-text schedule, or "Hinta ei tiedossa"; unknown values never filter a listing out.
 
 ### Dialogs
 
@@ -134,7 +165,7 @@ Every dialog is a window (`Modal.tsx`): a `.titlebar` with the title and a text-
 
 ### Status bar
 
-`.statusbar`, fixed to the bottom on every screen, 2.25rem tall with 0.9rem text: the organisation name ("Länsi-Uudenmaan hyvinvointialue"), then once signed in a small green light with "Yhdistetty: LUVN", the last sync time, and the signed-in user. Segments are separated by grooves (a border plus a white line). On narrow screens the user segment is hidden. The user's name appears only here, not in the top bar.
+`.statusbar`, fixed to the bottom on every screen, 2.25rem tall with 0.9rem text: the organisation name ("Länsi-Uudenmaan hyvinvointialue"), then once signed in a small green light with "Yhdistetty: LUVN", the last sync time, and the signed-in user. Segments are separated by grooves (a border plus a white line). Up to 720px wide only the organisation (shortened with an ellipsis) and the connection show, on one line. The user's name appears only here, not in the top bar.
 
 ### Information dialog
 
@@ -149,7 +180,7 @@ Each component has a static reference file in `design/` (open `design/index.html
 
 | File | React source | Key classes |
 |---|---|---|
-| `topbar.html` | `src/App.tsx` | `.topbar`, `.topbar-left`, `.home-button`, `.brand`, `.lang-switch`, `.segment`, `.data-switch` |
+| `topbar.html` | `src/views/TopBar.tsx` | `.topbar`, `.menu-toggle`, `.menu-bars`, `.topbar-menu`, `.topbar-left`, `.home-button`, `.brand`, `.brand-logo`, `.lang-switch`, `.segment` |
 | `login.html` | `src/views/Login.tsx` | `.login`, `.role-choice`, `.role-option`, `.strong-auth`, `.divider` |
 | `patient-search.html` | `src/views/PatientSearch.tsx` | `.search-row`, `.results-table` |
 | `access-dialog.html` | `src/views/PatientSearch.tsx`, `DataSources.tsx`, `Modal.tsx` | `.modal`, `.titlebar`, `.modal-body`, `.identity`, `.acknowledge`, `.sources`, `.sub-checks`, `.chat-prompt`, `.chat-input`, `.navigator-row`, `.summary` |
@@ -158,7 +189,7 @@ Each component has a static reference file in `design/` (open `design/index.html
 | `topic-list.html` | `src/views/Results.tsx` | `.tags.editable`, `.tag.matched`, `.tag-remove` |
 | `filters.html` | `src/views/FilterBar.tsx` | `.filters`, `label.suggested`, `.range-filter`, `.range` |
 | `group-card.html` (LOCATION on and off) | `src/views/GroupCard.tsx` | `.card`, `.card.active`, `.card.full`, `.card-rank`, `.seats` |
-| `treatment-browser.html` | `src/views/TreatmentBrowser.tsx` | `.home`, `.search-panel`, `.browser`, `.browser-layout`, `.browser-main`, `.news`, `.news-list`, `.news-title`, `.news-meta` |
+| `treatment-browser.html` | `src/views/TreatmentBrowser.tsx` | `.home`, `.home-hero`, `.search-panel`, `.browse-button`, `.browser`, `.browser-layout`, `.browser-main`, `.news`, `.news-list`, `.news-title`, `.news-meta` |
 | `map.html` | `src/views/GroupMap.tsx`, `src/lib/basemap.ts` | `.results-layout`, `.map-panel`, `.map`, `.map-canvas`, `.map-pin`, `.map-home`, `.map-contact`, `.map-expand`, `.map-legend` |
 | `booking-dialog.html` | `src/views/BookingDialog.tsx` | `.modal.wide`, `.details`, `.criteria`, `.contact`, `.success`, `a.button` |
 | `statusbar.html` | `src/views/StatusBar.tsx` | `.statusbar`, `.status-light` |

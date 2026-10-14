@@ -7,23 +7,24 @@
   <link rel="stylesheet" href="../src/styles.css" />
 </head>
 <body>
+<!-- Narrow the window below 720px to see the menu button; add class "menu-open" to the header to open the panel -->
 <header class="topbar">
-  <div class="topbar-left">
-    <button class="secondary home-button">Etusivu</button>
-    <button class="badge data-switch synthetic" role="switch" aria-checked="false"
-      title="Vaihda synteettisten demoryhmien ja todellisten palvelujen välillä. Potilaat ovat aina synteettisiä.">
-      <span class="switch-track" aria-hidden="true"><span class="switch-knob"></span></span>
-      DEMO · synteettinen data
-    </button>
-  </div>
-  <strong class="brand">Psyykkeri</strong>
-  <div class="topbar-right">
-    <div class="lang-switch" role="group" aria-label="Kieli / Språk / Language">
-      <button class="segment active" aria-pressed="true">FI</button>
-      <button class="segment" aria-pressed="false">SV</button>
-      <button class="segment" aria-pressed="false">EN</button>
+  <button class="menu-toggle" aria-expanded="false" aria-controls="topbar-menu" aria-label="Avaa valikko">
+    <span class="menu-bars" aria-hidden="true"><span></span><span></span><span></span></span>
+  </button>
+  <strong class="brand"><img class="brand-logo" src="../public/logo/doctorcat.png" alt="" />Psyykkeri</strong>
+  <div id="topbar-menu" class="topbar-menu">
+    <div class="topbar-left">
+      <button class="secondary home-button">Etusivu</button>
     </div>
-    <button class="link">Kirjaudu ulos</button>
+    <div class="topbar-right">
+      <div class="lang-switch" role="group" aria-label="Kieli">
+        <button class="segment active" aria-pressed="true">FI</button>
+        <button class="segment" aria-pressed="false">SV</button>
+        <button class="segment" aria-pressed="false">EN</button>
+      </div>
+      <button class="link">Kirjaudu ulos</button>
+    </div>
   </div>
 </header>
 </body>

@@ -10,7 +10,8 @@ export const ROLES: Role[] = ['patient', 'proxy', 'professional']
 export type User = {
   role: Role
   name: string
-  title: string
+  // Professional title, worded by the UI
+  title: 'psychologist' | null
   // Own identity code, for patient and proxy users
   hetu: string | null
   // Identity codes the user may act for (proxy only)
@@ -21,15 +22,15 @@ export type User = {
 const ACCOUNTS: Record<Role, { username: string; user: User }> = {
   professional: {
     username: 'demo',
-    user: { role: 'professional', name: 'Iiris Ainias', title: 'Psykologi', hetu: null, actsFor: [] },
+    user: { role: 'professional', name: 'Iiris Ainias', title: 'psychologist', hetu: null, actsFor: [] },
   },
   patient: {
     username: 'aino',
-    user: { role: 'patient', name: 'Aino Virtanen', title: '', hetu: '120358-912J', actsFor: [] },
+    user: { role: 'patient', name: 'Aino Virtanen', title: null, hetu: '120358-912J', actsFor: [] },
   },
   proxy: {
     username: 'jari',
-    user: { role: 'proxy', name: 'Jari Korhonen', title: '', hetu: '230679-921S', actsFor: ['140311A962A'] },
+    user: { role: 'proxy', name: 'Jari Korhonen', title: null, hetu: '230679-921S', actsFor: ['140311A962A'] },
   },
 }
 

@@ -77,8 +77,8 @@ export const TreatmentBrowser = ({ groups, referrer }: { groups: GroupListing[];
   }
 
   return (
-    <section className="browser" aria-labelledby="browser-title">
-      <h2 id="browser-title">{b.title}</h2>
+    <section id="browser" className="browser" aria-labelledby="browser-title">
+      <h2 id="browser-title" tabIndex={-1}>{b.title}</h2>
       <div className="browser-layout">
         <div className="browser-main">
           <FilterBar filters={filters} feeScale={feeScale(groups)} location={false} onChange={setFilters}>

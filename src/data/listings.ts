@@ -1,22 +1,6 @@
 import { UNKNOWN_ELIGIBILITY } from '../lib/eligibility'
-import { GROUPS, type GroupListing } from './groups'
-import { RETRIEVED_AT, TREATMENTS, type TreatmentKind, type TreatmentListing, type TreatmentLocation } from './treatments'
-
-export type DataSource = 'synthetic' | 'real'
-
-// Listing data, so it stays in Finnish like the organisers' own texts
-const KIND_LABELS: Record<TreatmentKind, string> = {
-  group: 'Ryhmähoito',
-  peerGroup: 'Vertaisryhmä',
-  individual: 'Yksilötapaamiset',
-  dropIn: 'Matalan kynnyksen keskusteluapu',
-  helpline: 'Auttava puhelin',
-  chat: 'Chat',
-  online: 'Nettiterapia',
-  selfCare: 'Omahoito',
-  organisation: 'Järjestö',
-  specialist: 'Erikoispalvelu',
-}
+import type { GroupListing } from './groups'
+import { RETRIEVED_AT, TREATMENTS, type TreatmentListing, type TreatmentLocation } from './treatments'
 
 const hostname = (url: string) => new URL(url).hostname.replace(/^www\./, '')
 
@@ -31,7 +15,9 @@ const toListing = (t: TreatmentListing, location: TreatmentLocation | null, id: 
     serviceId: t.id,
     name: t.name,
     organiser: t.organiser,
-    method: KIND_LABELS[t.kind],
+    // The sources name no method; the UI words the kind
+    method: '',
+    kind: t.kind,
     format: t.format,
     genders: t.genders,
     address: location?.address ?? '',
@@ -75,7 +61,6 @@ export const toGroupListings = (t: TreatmentListing): GroupListing[] => {
 // Untagged entries can never match, so they stay out of the corpus that sets the tag weights
 export const REAL_GROUPS: GroupListing[] = TREATMENTS.filter(t => t.tags.length > 0).flatMap(toGroupListings)
 
-export const LISTINGS: Record<DataSource, GroupListing[]> = { synthetic: GROUPS, real: REAL_GROUPS }
 
 // Browsing needs no tags, so the catalogue also lists the untagged services (psychosis, eating disorders, ...)
-export const CATALOGUE: Record<DataSource, GroupListing[]> = { synthetic: GROUPS, real: TREATMENTS.flatMap(toGroupListings) }
+export const CATALOGUE: GroupListing[] = TREATMENTS.flatMap(toGroupListings)

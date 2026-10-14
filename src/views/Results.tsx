@@ -12,6 +12,7 @@ import { useT, type Lang } from '../i18n'
 import { BookingDialog } from './BookingDialog'
 import { FilterBar } from './FilterBar'
 import { GroupCard } from './GroupCard'
+import { evidenceText } from './format'
 import { GroupMap } from './GroupMap'
 import { PatientBanner } from './PatientBanner'
 
@@ -67,7 +68,7 @@ export const Results = ({
             <h2>{t.extractedTitle}</h2>
             <div className="tags editable">
               {tags.map(id => (
-                <span key={id} className="tag matched" title={evidence.get(id) ?? ''}>
+                <span key={id} className="tag matched" title={evidence.has(id) ? evidenceText(evidence.get(id)!, lang) : ''}>
                   {label(id, lang)}
                   <button className="tag-remove" aria-label={`${t.removeTag}: ${label(id, lang)}`}
                     onClick={() => setTags(tags.filter(x => x !== id))}>×</button>

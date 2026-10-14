@@ -2,7 +2,7 @@ import type { BookingConfig, Contact } from '../lib/booking'
 import { LUVN_MUNICIPALITIES, type Eligibility } from '../lib/eligibility'
 import type { Coords } from '../lib/geo'
 import type { HashtagId } from './hashtags'
-import { GENDERS, type EnrolmentStatus, type Gender, type Lang, type SessionType } from './treatments'
+import { GENDERS, type EnrolmentStatus, type Gender, type Lang, type SessionType, type TreatmentKind } from './treatments'
 
 // null means the organiser does not publish the value; unknown values never filter a listing out
 export type GroupListing = {
@@ -11,7 +11,9 @@ export type GroupListing = {
   serviceId?: string
   name: string
   organiser: string
+  // The organiser's own name for the method; listings without one give their kind, worded by the UI
   method: string
+  kind?: TreatmentKind
   format: SessionType
   genders: Gender[]
   address: string
@@ -42,8 +44,10 @@ export type GroupListing = {
 // Coordinates are WGS84 (lat/lon) and cover the LUVN and HUS areas
 const LUVN_BOOKING: BookingConfig = { type: 'integrated', system: 'LUVN ajanvaraus (demo)', adapter: 'mock' }
 
-// SYNTHETIC listings for demo purposes only. Organisations other than LUVN and HUS units,
-// all contact persons and all contact details are fictional.
+// SYNTHETIC listings, used only as test fixtures: the app shows the real services (listings.ts).
+// They exercise what the real sources don't publish: inclusion criteria, seat counts and the
+// integrated booking path. Organisations other than LUVN and HUS units, all contact persons
+// and all contact details are fictional.
 export const GROUPS: GroupListing[] = [
   {
     id: 'g01',

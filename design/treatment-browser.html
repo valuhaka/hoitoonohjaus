@@ -8,12 +8,16 @@
 </head>
 <body>
 <main class="content wide home">
-  <section class="panel search-panel">
-    <p class="hint">Search row (see patient-search.html).</p>
-  </section>
+  <div class="home-hero">
+    <section class="panel search-panel">
+      <p class="hint">Search row (see patient-search.html), centred in the upper two thirds of the first screen.</p>
+    </section>
+    <!-- At the bottom of the first screen; pressing it scrolls to the browser below -->
+    <button class="primary browse-button">Selaa hoitoja vapaasti</button>
+  </div>
 
-  <section class="browser">
-    <h2>Selaa hoitoja</h2>
+  <section id="browser" class="browser">
+    <h2 id="browser-title" tabindex="-1">Selaa hoitoja vapaasti</h2>
     <div class="browser-layout">
       <div class="browser-main">
         <div class="filters">

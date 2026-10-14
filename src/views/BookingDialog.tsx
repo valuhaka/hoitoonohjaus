@@ -3,8 +3,8 @@ import { HASHTAGS } from '../data/hashtags'
 import { ADAPTERS } from '../lib/booking'
 import { LUVN_MUNICIPALITIES, type Eligibility } from '../lib/eligibility'
 import type { Match } from '../lib/match'
-import { formatFee, useT } from '../i18n'
-import { languagesText, scheduleLine, seatsText } from './format'
+import { formatFee, placeName, useT } from '../i18n'
+import { languagesText, methodText, scheduleLine, seatsText } from './format'
 import { placeText } from './GroupCard'
 import { Modal } from './Modal'
 
@@ -20,7 +20,7 @@ const inSentence = (label: string) => (/^\p{Lu}\p{Ll}/u.test(label) ? label[0]!.
 const Criteria = ({ eligibility: e }: { eligibility: Eligibility }) => {
   const { t, lang } = useT()
   const residents = e.municipalities && (
-    e.municipalities === LUVN_MUNICIPALITIES ? t.criteria.residentsLuvn : e.municipalities.join(', ')
+    e.municipalities === LUVN_MUNICIPALITIES ? t.criteria.residentsLuvn : e.municipalities.map(m => placeName(m, lang)).join(', ')
   )
   return (
     <section className="criteria">
@@ -76,7 +76,7 @@ export const BookingDialog = ({
       <p className="organiser">{group.organiser}</p>
 
       <dl className="details">
-        <dt>{t.booking.method}</dt><dd>{group.method}</dd>
+        <dt>{t.booking.method}</dt><dd>{methodText(group, lang)}</dd>
         <dt>{t.booking.location}</dt>
         <dd>{[group.address, placeText(group, distanceKm, location, lang)].filter(Boolean).join(' · ') || t.locationUnknown}</dd>
         {schedule && <><dt>{t.booking.schedule}</dt><dd>{schedule}</dd></>}

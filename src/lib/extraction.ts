@@ -3,11 +3,14 @@ import type { Patient, RegisterId } from '../data/patients'
 import { ageAt } from './hetu'
 import { NAVIGATORS, type NavigatorResult } from './navigator'
 
-export type ExtractedTag = { id: HashtagId; evidence: string }
+// A quoted sentence from the data, or a fact the UI words in its own language
+export type Evidence = string | { age: number }
+
+export type ExtractedTag = { id: HashtagId; evidence: Evidence }
 
 // Practical circumstances that shape which groups are realistic, not what to treat
 export type ConstraintId = 'mobility' | 'working' | 'studying' | 'lowIncome' | 'older'
-export type ExtractedConstraint = { id: ConstraintId; evidence: string }
+export type ExtractedConstraint = { id: ConstraintId; evidence: Evidence }
 
 export type Extraction = { tags: ExtractedTag[]; constraints: ExtractedConstraint[]; source: string }
 
@@ -48,7 +51,7 @@ const findSentence = (all: string[], stems: readonly string[]) =>
   all.find(s => stems.some(stem => s.toLowerCase().includes(stem)))
 
 const ageTags = (age: number): ExtractedTag[] => {
-  const evidence = `Ikä ${age} v (henkilötunnus)`
+  const evidence = { age }
   return [
     ...(age >= 65 ? [{ id: 'ikaantyneet' as const, evidence }] : []),
     ...(age >= 18 && age <= 29 ? [{ id: 'nuoret' as const, evidence }] : []),
@@ -71,7 +74,7 @@ export const mockExtractor: PatientExtractor = async (input, now) => {
     const hit = findSentence(all, CONSTRAINT_STEMS[id])
     return hit ? [{ id, evidence: hit }] : []
   })
-  const older = age >= 65 ? [{ id: 'older' as const, evidence: `Ikä ${age} v (henkilötunnus)` }] : []
+  const older = age >= 65 ? [{ id: 'older' as const, evidence: { age } }] : []
 
   const found = new Set(textTags.map(t => t.id))
   const navigatorTags = (navigator?.tags ?? [])

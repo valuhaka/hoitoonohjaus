@@ -1,4 +1,5 @@
 import type { GroupListing } from '../data/groups'
+import type { Evidence } from '../lib/extraction'
 import type { Match } from '../lib/match'
 import { DICTS, formatDate, formatTime, type Lang } from '../i18n'
 
@@ -29,3 +30,9 @@ export const seatsText = ({ group, seatsLeft }: Match, lang: Lang) =>
   seatsLeft !== null ? DICTS[lang].seatsLeft(seatsLeft) : DICTS[lang].enrolment[group.status ?? 'unknown']
 
 export const languagesText = (group: GroupListing) => group.languages.join(' / ').toUpperCase()
+
+// Quotes stay as written; derived facts are worded in the UI language
+export const evidenceText = (evidence: Evidence, lang: Lang) =>
+  typeof evidence === 'string' ? evidence : DICTS[lang].ageEvidence(evidence.age)
+
+export const methodText = (group: GroupListing, lang: Lang) => (group.kind ? DICTS[lang].kinds[group.kind] : group.method)

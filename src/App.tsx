@@ -1,15 +1,16 @@
 import { useCallback, useEffect, useState } from 'react'
-import { CATALOGUE, LISTINGS, type DataSource } from './data/listings'
+import { CATALOGUE, REAL_GROUPS } from './data/listings'
 import { canAccess, type User } from './lib/auth'
 import { mockExtractor, type Extraction, type ExtractionInput } from './lib/extraction'
 import { logAccess, type AccessReason, type AuditEntry } from './lib/registry'
-import { DICTS, I18n, LANGS, type Lang } from './i18n'
+import { DICTS, I18n, type Lang } from './i18n'
 import { Login } from './views/Login'
 import { PatientSearch } from './views/PatientSearch'
 import { Processing } from './views/Processing'
 import { Results } from './views/Results'
 import { SelfService } from './views/SelfService'
 import { StatusBar } from './views/StatusBar'
+import { TopBar } from './views/TopBar'
 import { TreatmentBrowser } from './views/TreatmentBrowser'
 
 type Screen =
@@ -19,7 +20,6 @@ type Screen =
 
 export const App = () => {
   const [lang, setLang] = useState<Lang>('fi')
-  const [dataSource, setDataSource] = useState<DataSource>('synthetic')
   const [user, setUser] = useState<User | null>(null)
   const [syncedAt, setSyncedAt] = useState(() => new Date())
   const [screen, setScreen] = useState<Screen>({ name: 'start' })
@@ -40,6 +40,13 @@ export const App = () => {
     [],
   )
 
+  // The browser sits just below the first screen; the button scrolls to it and hands focus to its heading
+  const toBrowser = () => {
+    const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    document.getElementById('browser')?.scrollIntoView({ behavior: still ? 'auto' : 'smooth', block: 'start' })
+    document.getElementById('browser-title')?.focus({ preventScroll: true })
+  }
+
   const logout = () => {
     setUser(null)
     setScreen({ name: 'start' })
@@ -47,43 +54,26 @@ export const App = () => {
 
   return (
     <I18n.Provider value={{ t, lang }}>
-      <header className="topbar">
-        <div className="topbar-left">
-          {user && <button className="secondary home-button" onClick={() => setScreen({ name: 'start' })}>{t.backHome}</button>}
-          <button className={`badge data-switch ${dataSource}`} role="switch" aria-checked={dataSource === 'real'}
-            title={t.dataSource.toggle} onClick={() => setDataSource(s => (s === 'real' ? 'synthetic' : 'real'))}>
-            <span className="switch-track" aria-hidden="true"><span className="switch-knob" /></span>
-            {t.dataSource[dataSource]}
-          </button>
-        </div>
-        <strong className="brand">{t.appName}</strong>
-        <div className="topbar-right">
-          <div className="lang-switch" role="group" aria-label="Kieli / Språk / Language">
-            {LANGS.map(l => (
-              <button key={l} className={l === lang ? 'segment active' : 'segment'}
-                aria-pressed={l === lang} onClick={() => setLang(l)}>
-                {l.toUpperCase()}
-              </button>
-            ))}
-          </div>
-          {user && <button className="link" onClick={logout}>{t.logout}</button>}
-        </div>
-      </header>
+      <TopBar user={user} onLang={setLang} onHome={() => setScreen({ name: 'start' })} onLogout={logout} />
 
       {!user && <Login onLogin={u => { setUser(u); setSyncedAt(new Date()) }} />}
       {user && screen.name === 'start' && (
         <main className="content wide home">
-          {user.role === 'professional'
-            ? <PatientSearch user={user} onOpen={open} />
-            : <SelfService user={user} onStart={input => open(input, user.role === 'proxy' ? 'proxy' : 'own')} />}
-          <TreatmentBrowser groups={CATALOGUE[dataSource]} referrer={user.name} />
+          {/* The search fills the first screen; the browser starts just below it, and the button at the bottom scrolls there */}
+          <div className="home-hero">
+            {user.role === 'professional'
+              ? <PatientSearch user={user} onOpen={open} />
+              : <SelfService user={user} onStart={input => open(input, user.role === 'proxy' ? 'proxy' : 'own')} />}
+            <button className="primary browse-button" onClick={toBrowser}>{t.browser.title}</button>
+          </div>
+          <TreatmentBrowser groups={CATALOGUE} referrer={user.name} />
         </main>
       )}
       {user && screen.name === 'processing' && (
         <Processing input={screen.input} extractor={mockExtractor} onDone={onExtracted} />
       )}
       {user && screen.name === 'results' && (
-        <Results patient={screen.input.patient} extraction={screen.extraction} groups={LISTINGS[dataSource]} user={user}
+        <Results patient={screen.input.patient} extraction={screen.extraction} groups={REAL_GROUPS} user={user}
           onNewSearch={() => setScreen({ name: 'start' })} />
       )}
       <StatusBar user={user} syncedAt={syncedAt} />

@@ -2,7 +2,7 @@ import { HASHTAGS, type HashtagId } from '../data/hashtags'
 import type { GroupListing } from '../data/groups'
 import type { Match } from '../lib/match'
 import { formatFee, useT, type Lang } from '../i18n'
-import { distanceText, languagesText, remoteText, scheduleLine, seatsText } from './format'
+import { distanceText, languagesText, methodText, remoteText, scheduleLine, seatsText } from './format'
 
 export const Tag = ({ id, highlight }: { id: HashtagId; highlight?: boolean }) => {
   const { lang } = useT()
@@ -49,7 +49,7 @@ export const GroupCard = ({
           <span>{formatFee(group.fee, lang)}</span>
         </div>
         <div className="facts muted">
-          <span>{group.method}</span>
+          <span>{methodText(group, lang)}</span>
           {scheduleLine(group, lang) && <span>{scheduleLine(group, lang)}</span>}
           <span>{languagesText(group)}</span>
         </div>

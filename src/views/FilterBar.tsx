@@ -5,6 +5,7 @@ import {
   type FilterGuess, type Filters, type Range, type Scale, type SessionFilter, type TimeOfDay,
 } from '../lib/filters'
 import { useT } from '../i18n'
+import { evidenceText } from './format'
 
 type Suggestion = { className?: string; title?: string }
 
@@ -72,13 +73,13 @@ export const FilterBar = ({
   onChange: (filters: Filters) => void
   children?: ReactNode
 }) => {
-  const { t } = useT()
+  const { t, lang } = useT()
   const f = t.filters
   // A filter counts as suggested while it still holds the guessed value
   const suggested = (key: keyof Filters): Suggestion => {
     const reason = guess.reasons[key]
     return reason && JSON.stringify(filters[key]) === JSON.stringify(guess.filters[key])
-      ? { className: 'suggested', title: `${f.suggested}: ${reason}` }
+      ? { className: 'suggested', title: `${f.suggested}: ${evidenceText(reason, lang)}` }
       : {}
   }
   const set = <K extends keyof Filters>(key: K, value: Filters[K]) => onChange({ ...filters, [key]: value })
