@@ -32,6 +32,7 @@ const toListing = (t: TreatmentListing, location: TreatmentLocation | null, id: 
     name: t.name,
     organiser: t.organiser,
     method: KIND_LABELS[t.kind],
+    description: t.description,
     format: t.format,
     genders: t.genders,
     address: location?.address ?? '',

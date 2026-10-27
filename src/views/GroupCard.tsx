@@ -1,12 +1,30 @@
 import { HASHTAGS, type HashtagId } from '../data/hashtags'
 import type { GroupListing } from '../data/groups'
-import type { Match } from '../lib/match'
+import type { Adjustment, Match } from '../lib/match'
 import { formatFee, useT, type Lang } from '../i18n'
 import { distanceText, languagesText, remoteText, scheduleLine, seatsText } from './format'
 
 export const Tag = ({ id, highlight }: { id: HashtagId; highlight?: boolean }) => {
   const { lang } = useT()
   return <span className={highlight ? 'tag matched' : 'tag'}>{HASHTAGS[id][lang]}</span>
+}
+
+const adjustmentText = (a: Adjustment, t: ReturnType<typeof useT>['t']) =>
+  a.kind === 'fit' ? `${t.ai.fit[a.fit]}${a.reason ? `: ${a.reason}` : ''}`
+  : a.kind === 'session' ? t.ai.preference[a.preference]
+  : t.ai.ageGroup[a.target]
+
+// Why the second ranking stage moved this listing; a confirmed fit is shown as well
+const Adjustments = ({ adjustments }: { adjustments: Adjustment[] }) => {
+  const { t } = useT()
+  if (adjustments.length === 0) return null
+  return (
+    <ul className="adjustments">
+      {adjustments.map((a, i) => (
+        <li key={`${a.kind}-${i}`} className={a.weight < 1 ? 'down' : 'up'}>{adjustmentText(a, t)}</li>
+      ))}
+    </ul>
+  )
 }
 
 // Where the listing is: with a reference point the distance to it, otherwise only whether it is remote
@@ -53,6 +71,7 @@ export const GroupCard = ({
           {scheduleLine(group, lang) && <span>{scheduleLine(group, lang)}</span>}
           <span>{languagesText(group)}</span>
         </div>
+        {match.adjustments && <Adjustments adjustments={match.adjustments} />}
       </div>
       <div className="card-side">
         <span className={seatsLeft === 0 ? 'seats none' : 'seats'}>{reserved ? t.reserved : seatsText(match, lang)}</span>

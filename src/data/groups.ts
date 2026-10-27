@@ -12,6 +12,8 @@ export type GroupListing = {
   name: string
   organiser: string
   method: string
+  // The organiser's own description; the language model reads it when judging fit
+  description?: string
   format: SessionType
   genders: Gender[]
   address: string

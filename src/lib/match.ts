@@ -1,6 +1,7 @@
 import type { GroupListing } from '../data/groups'
 import type { HashtagId } from '../data/hashtags'
 import { isEligible, type Candidate } from './eligibility'
+import type { Fit, Judgment, PatientProfile, SessionPreference } from './extraction'
 import { distanceKm, type Coords } from './geo'
 
 export type Match = {
@@ -10,9 +11,17 @@ export type Match = {
   distanceKm: number | null
   // null when the organiser publishes no seat counts
   seatsLeft: number | null
+  // Set by semanticRank: the factors that scaled the tag score
+  adjustments?: Adjustment[]
 }
 
-const serviceKey = (group: GroupListing) => group.serviceId ?? group.id
+// Why a match was moved down (or confirmed) after tag matching
+export type Adjustment =
+  | { kind: 'fit'; fit: Fit; reason: string; weight: number }
+  | { kind: 'session'; preference: Exclude<SessionPreference, 'none'>; weight: number }
+  | { kind: 'ageGroup'; target: 'ikaantyneet' | 'nuoret'; weight: number }
+
+export const serviceKey = (group: GroupListing) => group.serviceId ?? group.id
 
 // Inverse document frequency over the listing corpus: rare tags carry more information.
 // A service listed once per location counts once.
@@ -71,14 +80,58 @@ export const rankGroups = (
     .filter(group => !candidate || isEligible(group.eligibility, { ...candidate, tags: patientTags }))
     .map(group => ({ ...located(group, home), ...fitScore(patientTags, group.tags, idf) }))
     .filter(m => m.score > 0)
-  return nearestPerService(matches)
-    .sort(
-      (a, b) =>
-        Number(b.seatsLeft !== 0) - Number(a.seatsLeft !== 0) ||
-        b.score - a.score ||
-        (a.distanceKm ?? 0) - (b.distanceKm ?? 0),
-    )
+  return nearestPerService(matches).sort(byRank)
 }
+
+// Groups with seats first, then by score, then the nearest
+export const byRank = (a: Match, b: Match) =>
+  Number(b.seatsLeft !== 0) - Number(a.seatsLeft !== 0) ||
+  b.score - a.score ||
+  (a.distanceKm ?? 0) - (b.distanceKm ?? 0)
+
+const FIT_WEIGHTS: Record<Fit, number> = { yes: 1, partly: 0.7, no: 0.3 }
+const AGE_GROUP_WEIGHT = 0.5
+const OLDER_FROM = 65
+const YOUNG_ADULT_UNTIL = 29
+
+// A hybrid service without a mapped site is only reachable remotely, like the card shows it
+const isRemote = (group: GroupListing) =>
+  group.format !== 'inPerson' && (group.format !== 'hybrid' || group.coords === null)
+
+const sessionWeight = (group: GroupListing, preference: SessionPreference): number =>
+  preference === 'inPerson' ? (isRemote(group) ? 0.5 : group.format === 'hybrid' ? 0.9 : 1)
+  : preference === 'remote' ? (group.format === 'inPerson' ? 0.6 : 1)
+  : 1
+
+const adjustmentsFor = (
+  group: GroupListing,
+  { age, profile, judgments }: SemanticContext,
+): Adjustment[] => {
+  const judgment = judgments?.[serviceKey(group)]
+  const preference = profile?.sessionPreference ?? 'none'
+  const session = sessionWeight(group, preference)
+  return [
+    ...(judgment ? [{ kind: 'fit' as const, ...judgment, weight: FIT_WEIGHTS[judgment.fit] }] : []),
+    ...(preference !== 'none' && session < 1 ? [{ kind: 'session' as const, preference, weight: session }] : []),
+    ...(group.tags.includes('ikaantyneet') && age < OLDER_FROM
+      ? [{ kind: 'ageGroup' as const, target: 'ikaantyneet' as const, weight: AGE_GROUP_WEIGHT }] : []),
+    ...(group.tags.includes('nuoret') && age > YOUNG_ADULT_UNTIL
+      ? [{ kind: 'ageGroup' as const, target: 'nuoret' as const, weight: AGE_GROUP_WEIGHT }] : []),
+  ]
+}
+
+export type SemanticContext = { age: number; profile?: PatientProfile; judgments?: Record<string, Judgment> }
+
+// Second stage after tag matching: scales each score by how well the service's target group,
+// age group and session type suit this patient, then re-sorts
+export const semanticRank = (matches: Match[], context: SemanticContext): Match[] =>
+  matches
+    .map(m => {
+      const adjustments = adjustmentsFor(m.group, context)
+      const weight = adjustments.reduce((w, a) => w * a.weight, 1)
+      return { ...m, score: m.score * weight, adjustments }
+    })
+    .sort(byRank)
 
 // Browsing without a patient: no fit score. With a reference point each service keeps its nearest
 // site; without one there is no nearest, so every site is listed and nothing has a distance.

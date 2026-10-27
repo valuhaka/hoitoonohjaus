@@ -122,6 +122,15 @@ MapLibre GL with an offline Protomaps basemap (`public/maps/`, see README.md), s
 - **Patients with a non-disclosure order (turvakielto) get no home marker, no circle and no care network**, except when the patients themselves are signed in.
 - Hovering a card highlights its pin, and clicking a pin scrolls to its card. Coordinates are WGS84.
 
+### Language model switch and notes
+
+A second `.data-switch` (state class `.on`) next to the data source switch turns the browser language model on and off ("Kielimalli: Qwen3.5 2B" / "Avainsanahaku"). It is disabled, with an explanatory tooltip, when the browser has no WebGPU. While it is on, the model starts downloading at login.
+
+- Processing: below the phrase, `.engine-status` shows the download percentage and then "Kielimalli arvioi palveluja: n/10" while the model reviews the best tag matches.
+- Topic list: `.model-summary` gives the model's one-sentence summary and any session preference (evidence sentence in the tooltip). With keyword extraction a `.hint` says so instead.
+- Group card: `.adjustments` lists why the second ranking stage moved the card. `li.up` (green, ↑) is a confirmed target-group fit; `li.down` (`--warning`, ↓) is a mismatch: target group, session preference or an age group the patient is outside of. The model's reason is English text from the model and is shown as is.
+- `#vertailu` opens the model comparison (`src/views/ModelCompare.tsx`): `.compare-controls` with one `.check` per model, and a horizontally scrolling `.compare-table` with one column per model. Constraint tags are drawn dashed (`.tag.constraint`); the widow-group verdict is `.compare-fit.yes|partly|no`.
+
 ### Data source switch
 
 `.data-switch` sits next to the wordmark, in the slot of the former demo badge. It is a badge-sized `role="switch"` with a small rectangular track and knob, and switches the listings between the synthetic demo groups and the real services (`src/data/listings.ts`). Showing synthetic data it keeps the warning colours and reads "DEMO · synteettinen data"; showing real data it turns `--tint` with `--green-dark` text. The tooltip says that patients are always synthetic. It has no slanted button shape.
@@ -149,19 +158,20 @@ Each component has a static reference file in `design/` (open `design/index.html
 
 | File | React source | Key classes |
 |---|---|---|
-| `topbar.html` | `src/App.tsx` | `.topbar`, `.topbar-left`, `.home-button`, `.brand`, `.lang-switch`, `.segment`, `.data-switch` |
+| `topbar.html` | `src/App.tsx` | `.topbar`, `.topbar-left`, `.home-button`, `.brand`, `.lang-switch`, `.segment`, `.data-switch`, `.data-switch.on` |
 | `login.html` | `src/views/Login.tsx` | `.login`, `.role-choice`, `.role-option`, `.strong-auth`, `.divider` |
 | `patient-search.html` | `src/views/PatientSearch.tsx` | `.search-row`, `.results-table` |
 | `access-dialog.html` | `src/views/PatientSearch.tsx`, `DataSources.tsx`, `Modal.tsx` | `.modal`, `.titlebar`, `.modal-body`, `.identity`, `.acknowledge`, `.sources`, `.sub-checks`, `.chat-prompt`, `.chat-input`, `.navigator-row`, `.summary` |
 | `patient-banner.html` | `src/views/PatientBanner.tsx` | `.patient-banner` |
-| `processing.html` | `src/views/Processing.tsx` | `.processing`, `.waves`, `.steps`, `.step-icon`, `.phrase` |
-| `topic-list.html` | `src/views/Results.tsx` | `.tags.editable`, `.tag.matched`, `.tag-remove` |
+| `processing.html` | `src/views/Processing.tsx` | `.processing`, `.waves`, `.steps`, `.step-icon`, `.phrase`, `.engine-status` |
+| `topic-list.html` | `src/views/Results.tsx` | `.tags.editable`, `.tag.matched`, `.tag-remove`, `.model-summary` |
 | `filters.html` | `src/views/FilterBar.tsx` | `.filters`, `label.suggested`, `.range-filter`, `.range` |
-| `group-card.html` (LOCATION on and off) | `src/views/GroupCard.tsx` | `.card`, `.card.active`, `.card.full`, `.card-rank`, `.seats` |
+| `group-card.html` (LOCATION on and off) | `src/views/GroupCard.tsx` | `.card`, `.card.active`, `.card.full`, `.card-rank`, `.seats`, `.adjustments` |
 | `treatment-browser.html` | `src/views/TreatmentBrowser.tsx` | `.home`, `.search-panel`, `.browser`, `.browser-layout`, `.browser-main`, `.news`, `.news-list`, `.news-title`, `.news-meta` |
 | `map.html` | `src/views/GroupMap.tsx`, `src/lib/basemap.ts` | `.results-layout`, `.map-panel`, `.map`, `.map-canvas`, `.map-pin`, `.map-home`, `.map-contact`, `.map-expand`, `.map-legend` |
 | `booking-dialog.html` | `src/views/BookingDialog.tsx` | `.modal.wide`, `.details`, `.criteria`, `.contact`, `.success`, `a.button` |
 | `statusbar.html` | `src/views/StatusBar.tsx` | `.statusbar`, `.status-light` |
+| `model-compare.html` | `src/views/ModelCompare.tsx` | `.compare`, `.compare-controls`, `.compare-table`, `.compare-situation`, `.compare-fit`, `.tag.constraint` |
 
 ## Buttons
 

@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Psyykkeri – Model comparison</title>
+  <link rel="stylesheet" href="../src/styles.css" />
+</head>
+<body>
+<main class="content wide compare">
+  <h1>Kielimallien vertailu</h1>
+  <p class="hint">Ajaa saman poiminnan synteettisille potilaille jokaisella valitulla mallilla. Viite on avainsanahaun tulos.</p>
+  <div class="compare-controls">
+    <label class="check"><input type="checkbox" checked /><span>Qwen3.5 2B (1.08 GB)</span></label>
+    <label class="check"><input type="checkbox" checked /><span>Gemma 2 2B (1.49 GB)</span></label>
+    <label class="check"><input type="checkbox" /><span>Gemma 3 1B (0.6 GB)</span></label>
+    <button class="primary">Aja vertailu</button>
+    <a href="#">Takaisin sovellukseen</a>
+  </div>
+  <p class="hint">Ladataan kielimallia Gemma 2 2B: 37 % · Fetching param cache[12/38]</p>
+  <div class="compare-scroll">
+    <table class="compare-table">
+      <thead><tr><th>Potilas</th><th>Viite (avainsanat)</th><th>Qwen3.5 2B</th><th>Gemma 2 2B</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Aino Virtanen</strong><div class="hint">68 v</div></td>
+          <td><div class="tags"><span class="tag">yksinaisyys</span><span class="tag">masennus</span><span class="tag">suru</span><span class="tag">ikaantyneet</span><span class="tag constraint">mobility</span></div></td>
+          <td>
+            <div class="tags"><span class="tag">suru</span><span class="tag">yksinaisyys</span><span class="tag">ikaantyneet</span><span class="tag constraint">mobility</span><span class="tag constraint">lowIncome</span></div>
+            <p class="compare-situation">Widowed in 2024, lonely, mildly depressed; children abroad.</p>
+            <p class="hint">Toivoo kasvokkaista tapaamista</p>
+            <p class="compare-fit yes">Leskiryhmä: Sopii kohderyhmään – Widowed and older</p>
+            <p class="hint">6.2 s</p>
+          </td>
+          <td>
+            <div class="tags"><span class="tag">yksinaisyys</span><span class="tag">ikaantyneet</span></div>
+            <p class="compare-situation">Lonely older woman.</p>
+            <p class="compare-fit partly">Leskiryhmä: Kohderyhmä osin sopiva – Age fits, spouse unclear</p>
+            <p class="hint">9.8 s</p>
+          </td>
+        </tr>
+        <tr>
+          <td><strong>Jari Korhonen</strong><div class="hint">47 v</div></td>
+          <td><div class="tags"><span class="tag">masennus</span><span class="tag">uupumus</span><span class="tag">tyottomyys</span></div></td>
+          <td>
+            <div class="tags"><span class="tag">tyottomyys</span><span class="tag">masennus</span><span class="tag">uupumus</span></div>
+            <p class="compare-fit no">Leskiryhmä: Ei kohderyhmää – Not widowed, not over 70</p>
+            <p class="hint">5.1 s</p>
+          </td>
+          <td><span class="error">Virhe: Unexpected end of JSON input</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+</body>
+</html>

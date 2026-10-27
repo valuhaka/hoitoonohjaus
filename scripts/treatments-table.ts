@@ -1,32 +1,11 @@
 // Renders src/data/treatments.ts as a Markdown table: node scripts/treatments-table.ts > docs/treatments.md
 import { HASHTAGS } from '../src/data/hashtags.ts'
 import { RETRIEVED_AT, SOURCES_WITHOUT_LISTINGS, TREATMENTS } from '../src/data/treatments.ts'
-import type { Gender, Media, SessionType, TreatmentListing } from '../src/data/treatments.ts'
+import type { Media, TreatmentListing } from '../src/data/treatments.ts'
+import { genders, SESSION_LABELS, STATUS_LABELS } from './labels.ts'
 
 const NOT_PUBLISHED = '–'
 const cell = (text: string) => text.replace(/\|/g, '\\|').replace(/\n/g, ' ')
-
-const STATUS_LABELS: Record<TreatmentListing['vacancy']['status'], string> = {
-  dropIn: 'Ilman ilmoittautumista',
-  continuous: 'Jatkuva',
-  applyNow: 'Haku auki',
-  applyLater: 'Haku myöhemmin',
-  registrationClosed: 'Ilmoittautuminen päättynyt',
-  inProgress: 'Ryhmä käynnissä',
-  full: 'Täynnä',
-  referral: 'Lähetteellä',
-  unknown: 'Ei tietoa',
-}
-
-const SESSION_LABELS: Record<SessionType, string> = {
-  inPerson: 'Paikan päällä',
-  hybrid: 'Hybridi',
-  video: 'Video',
-  phone: 'Puhelin',
-  chat: 'Chat / kirjoittaen',
-  online: 'Verkko-ohjelma',
-}
-const GENDER_LABELS: Record<Gender, string> = { male: 'mies', female: 'nainen', other: 'muu' }
 
 const location = (t: TreatmentListing) =>
   t.locations.length === 0
@@ -54,7 +33,7 @@ const row = (t: TreatmentListing) => [
   `[${t.name}](${t.contact.url})`,
   t.organiser,
   SESSION_LABELS[t.format],
-  t.genders.length === 3 ? 'kaikki' : t.genders.map(g => GENDER_LABELS[g]).join(', '),
+  genders(t),
   location(t),
   t.timetable?.text ?? NOT_PUBLISHED,
   t.price.fee ? `${t.price.fee} € – ${t.price.note}` : t.price.note,

@@ -1,10 +1,13 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { CATALOGUE, LISTINGS, type DataSource } from './data/listings'
 import { canAccess, type User } from './lib/auth'
-import { mockExtractor, type Extraction, type ExtractionInput } from './lib/extraction'
+import { mockExtractor, withFallback, type Extraction, type ExtractionInput } from './lib/extraction'
+import { completeWith, DEFAULT_MODEL, hasWebGPU, loadModel, modelName } from './lib/llm/engine'
+import { createJudge, createModelExtractor } from './lib/llm/semantic'
 import { logAccess, type AccessReason, type AuditEntry } from './lib/registry'
 import { DICTS, I18n, LANGS, type Lang } from './i18n'
 import { Login } from './views/Login'
+import { ModelCompare } from './views/ModelCompare'
 import { PatientSearch } from './views/PatientSearch'
 import { Processing } from './views/Processing'
 import { Results } from './views/Results'
@@ -24,9 +27,27 @@ export const App = () => {
   const [syncedAt, setSyncedAt] = useState(() => new Date())
   const [screen, setScreen] = useState<Screen>({ name: 'start' })
   const [, setAudit] = useState<AuditEntry[]>([])
+  const [ai, setAi] = useState(hasWebGPU)
+  // Developer page that runs every model on the synthetic patients
+  const [comparing, setComparing] = useState(() => location.hash === '#vertailu')
   const t = DICTS[lang]
 
   useEffect(() => { document.documentElement.lang = lang }, [lang])
+  useEffect(() => {
+    const onHash = () => setComparing(location.hash === '#vertailu')
+    window.addEventListener('hashchange', onHash)
+    return () => window.removeEventListener('hashchange', onHash)
+  }, [])
+
+  // Start the download at login so the model is ready by the time a patient is opened
+  useEffect(() => { if (user && ai) loadModel().catch(() => undefined) }, [user, ai])
+
+  const extractor = useMemo(() => {
+    if (!ai) return mockExtractor
+    const llm = createModelExtractor(completeWith(DEFAULT_MODEL), `webllm:${DEFAULT_MODEL}`)
+    return withFallback(llm, mockExtractor)
+  }, [ai])
+  const judge = useMemo(() => (ai ? createJudge(completeWith(DEFAULT_MODEL)) : undefined), [ai])
 
   const open = (input: ExtractionInput, reason: AccessReason | 'own' | 'proxy') => {
     if (!user || !canAccess(user, input.patient.hetu)) return
@@ -55,6 +76,11 @@ export const App = () => {
             <span className="switch-track" aria-hidden="true"><span className="switch-knob" /></span>
             {t.dataSource[dataSource]}
           </button>
+          <button className={`badge data-switch ${ai ? 'on' : ''}`} role="switch" aria-checked={ai}
+            disabled={!hasWebGPU()} title={hasWebGPU() ? t.ai.toggle : t.ai.noWebGPU} onClick={() => setAi(on => !on)}>
+            <span className="switch-track" aria-hidden="true"><span className="switch-knob" /></span>
+            {ai ? t.ai.on(modelName(DEFAULT_MODEL)) : t.ai.off}
+          </button>
         </div>
         <strong className="brand">{t.appName}</strong>
         <div className="topbar-right">
@@ -70,8 +96,9 @@ export const App = () => {
         </div>
       </header>
 
-      {!user && <Login onLogin={u => { setUser(u); setSyncedAt(new Date()) }} />}
-      {user && screen.name === 'start' && (
+      {comparing && <ModelCompare />}
+      {!comparing && !user && <Login onLogin={u => { setUser(u); setSyncedAt(new Date()) }} />}
+      {!comparing && user && screen.name === 'start' && (
         <main className="content wide home">
           {user.role === 'professional'
             ? <PatientSearch user={user} onOpen={open} />
@@ -79,10 +106,11 @@ export const App = () => {
           <TreatmentBrowser groups={CATALOGUE[dataSource]} referrer={user.name} />
         </main>
       )}
-      {user && screen.name === 'processing' && (
-        <Processing input={screen.input} extractor={mockExtractor} onDone={onExtracted} />
+      {!comparing && user && screen.name === 'processing' && (
+        <Processing input={screen.input} extractor={extractor} judge={judge} groups={LISTINGS[dataSource]}
+          onDone={onExtracted} />
       )}
-      {user && screen.name === 'results' && (
+      {!comparing && user && screen.name === 'results' && (
         <Results patient={screen.input.patient} extraction={screen.extraction} groups={LISTINGS[dataSource]} user={user}
           onNewSearch={() => setScreen({ name: 'start' })} />
       )}

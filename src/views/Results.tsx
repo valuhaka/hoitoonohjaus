@@ -6,7 +6,7 @@ import type { User } from '../lib/auth'
 import type { Extraction } from '../lib/extraction'
 import { ageAt } from '../lib/hetu'
 import { applyFilters, feeScale, guessFilters, type Filters } from '../lib/filters'
-import { rankGroups } from '../lib/match'
+import { rankGroups, semanticRank } from '../lib/match'
 import { rankLabel } from '../lib/rank'
 import { useT, type Lang } from '../i18n'
 import { BookingDialog } from './BookingDialog'
@@ -43,9 +43,11 @@ export const Results = ({
 
   const ranked = useMemo(() => {
     const held = groups.map(g => (holds[g.id] && g.enrolled !== null ? { ...g, enrolled: g.enrolled + 1 } : g))
+    const age = ageAt(patient.hetu, new Date())
     // Inclusion criteria leave out groups the patient cannot join
-    return rankGroups(tags, patient.homeCoords, held, { age: ageAt(patient.hetu, new Date()), municipality: patient.municipality })
-  }, [tags, patient, groups, holds])
+    const byTags = rankGroups(tags, patient.homeCoords, held, { age, municipality: patient.municipality })
+    return semanticRank(byTags, { age, profile: extraction.profile, judgments: extraction.judgments })
+  }, [tags, patient, groups, holds, extraction])
   const visible = applyFilters(ranked, filters, new Date())
   const bookingMatch = ranked.find(m => m.group.id === bookingFor)
   const addable = HASHTAG_IDS.filter(id => !tags.includes(id))
@@ -78,6 +80,16 @@ export const Results = ({
                 {addable.map(id => <option key={id} value={id}>{label(id, lang)}</option>)}
               </select>
             </div>
+            {extraction.profile ? (
+              <p className="model-summary">
+                <strong>{t.ai.summary}:</strong> {extraction.profile.situation}
+                {extraction.profile.sessionPreference !== 'none' && (
+                  <span title={extraction.profile.sessionEvidence}> · {t.ai.preference[extraction.profile.sessionPreference]}</span>
+                )}
+              </p>
+            ) : (
+              <p className="hint">{t.ai.keywords}</p>
+            )}
           </section>
 
           <h2>{t.resultsTitle}</h2>

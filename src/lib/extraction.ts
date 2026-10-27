@@ -9,7 +9,22 @@ export type ExtractedTag = { id: HashtagId; evidence: string }
 export type ConstraintId = 'mobility' | 'working' | 'studying' | 'lowIncome' | 'older'
 export type ExtractedConstraint = { id: ConstraintId; evidence: string }
 
-export type Extraction = { tags: ExtractedTag[]; constraints: ExtractedConstraint[]; source: string }
+// Read from the record by the language model; the keyword extractor leaves these out
+export type SessionPreference = 'inPerson' | 'remote' | 'none'
+export type PatientProfile = { situation: string; sessionPreference: SessionPreference; sessionEvidence?: string }
+
+// The language model's verdict on whether the patient belongs to a service's target group
+export type Fit = 'yes' | 'partly' | 'no'
+export type Judgment = { fit: Fit; reason: string }
+
+export type Extraction = {
+  tags: ExtractedTag[]
+  constraints: ExtractedConstraint[]
+  source: string
+  profile?: PatientProfile
+  // Keyed by service (serviceId ?? id)
+  judgments?: Record<string, Judgment>
+}
 
 // Exactly the data the user chose to use. Age always comes from the identity code.
 export type ExtractionInput = {
@@ -39,7 +54,7 @@ const CONSTRAINT_STEMS: Record<Exclude<ConstraintId, 'older'>, string[]> = {
   lowIncome: ['taloudellinen tilanne tiukka', 'toimeentulotuki', 'pienituloi', 'työttömy'],
 }
 
-const sentences = (input: ExtractionInput): string[] =>
+export const sentences = (input: ExtractionInput): string[] =>
   [...selectedEntries(input).map(entry => entry.text), input.freeText]
     .flatMap(text => text.split(/(?<=[.!?])\s+/))
     .filter(s => s.trim() !== '')
@@ -47,7 +62,7 @@ const sentences = (input: ExtractionInput): string[] =>
 const findSentence = (all: string[], stems: readonly string[]) =>
   all.find(s => stems.some(stem => s.toLowerCase().includes(stem)))
 
-const ageTags = (age: number): ExtractedTag[] => {
+export const ageTags = (age: number): ExtractedTag[] => {
   const evidence = `Ikä ${age} v (henkilötunnus)`
   return [
     ...(age >= 65 ? [{ id: 'ikaantyneet' as const, evidence }] : []),
@@ -71,16 +86,30 @@ export const mockExtractor: PatientExtractor = async (input, now) => {
     const hit = findSentence(all, CONSTRAINT_STEMS[id])
     return hit ? [{ id, evidence: hit }] : []
   })
-  const older = age >= 65 ? [{ id: 'older' as const, evidence: `Ikä ${age} v (henkilötunnus)` }] : []
-
-  const found = new Set(textTags.map(t => t.id))
-  const navigatorTags = (navigator?.tags ?? [])
-    .filter(id => !found.has(id))
-    .map(id => ({ id, evidence: `${NAVIGATORS[navigator!.navigator].name} ${navigator!.code}` }))
 
   return {
-    tags: [...textTags, ...navigatorTags, ...ageTags(age)],
-    constraints: [...constraints, ...older],
+    tags: [...textTags, ...navigatorTags(navigator, textTags), ...ageTags(age)],
+    constraints: [...constraints, ...olderConstraint(age)],
     source: 'mock',
   }
 }
+
+// Navigator answers add the tags the texts did not already give
+export const navigatorTags = (navigator: NavigatorResult | null, found: ExtractedTag[]): ExtractedTag[] =>
+  (navigator?.tags ?? [])
+    .filter(id => !found.some(t => t.id === id))
+    .map(id => ({ id, evidence: `${NAVIGATORS[navigator!.navigator].name} ${navigator!.code}` }))
+
+export const olderConstraint = (age: number): ExtractedConstraint[] =>
+  age >= 65 ? [{ id: 'older', evidence: `Ikä ${age} v (henkilötunnus)` }] : []
+
+// Falls back to the keyword extractor when the language model cannot run (no WebGPU, download fails)
+export const withFallback = (primary: PatientExtractor, fallback: PatientExtractor): PatientExtractor =>
+  async (input, now) => {
+    try {
+      return await primary(input, now)
+    } catch (error) {
+      console.warn('Language model extraction failed, using keywords', error)
+      return { ...(await fallback(input, now)), source: 'mock (fallback)' }
+    }
+  }
