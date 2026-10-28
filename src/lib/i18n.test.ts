@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { DICTS } from '../i18n'
+import { GROUPS } from '../data/groups'
+import { PATIENTS } from '../data/patients'
+import { TREATMENTS } from '../data/treatments'
+import { DICTS, placeName } from '../i18n'
+import { LUVN_MUNICIPALITIES } from './eligibility'
 
 // Enforces the language rule in style.md: views take every visible string from src/i18n.ts
 const FILES = import.meta.glob<string>('../**/*.tsx', { query: '?raw', import: 'default', eager: true })
@@ -24,5 +28,15 @@ describe('language rule', () => {
       v && typeof v === 'object' ? Object.entries(v).flatMap(([k, x]) => keys(x, `${path}.${k}`)) : [path]
     expect(keys(DICTS.sv)).toEqual(keys(DICTS.fi))
     expect(keys(DICTS.en)).toEqual(keys(DICTS.fi))
+  })
+  it('has a Swedish name for every municipality in the data', () => {
+    // Remote listings leave the municipality empty, so it never holds a UI word such as "Etä"
+    const municipalities = new Set([
+      ...TREATMENTS.flatMap(t => t.locations.map(l => l.municipality)),
+      ...GROUPS.map(g => g.municipality),
+      ...PATIENTS.map(p => p.municipality),
+      ...LUVN_MUNICIPALITIES,
+    ].filter(Boolean))
+    expect([...municipalities].filter(m => placeName(m, 'sv') === m)).toEqual([])
   })
 })

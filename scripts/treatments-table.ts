@@ -31,7 +31,7 @@ const GENDER_LABELS: Record<Gender, string> = { male: 'mies', female: 'nainen', 
 const location = (t: TreatmentListing) =>
   t.locations.length === 0
     ? (t.format !== 'inPerson' && t.format !== 'hybrid' ? 'Etä' : NOT_PUBLISHED)
-    : t.locations.map(l => l.address).join('<br>')
+    : t.locations.map(l => l.address || 'Etä').join('<br>')
 
 const vacancy = ({ vacancy: v }: TreatmentListing) => {
   const seats = v.capacity === null ? NOT_PUBLISHED : `${v.enrolled ?? '?'} / ${v.capacity}`

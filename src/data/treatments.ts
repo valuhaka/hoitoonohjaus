@@ -175,7 +175,8 @@ const MIESSAKIT_HKI: TreatmentLocation = {
   municipality: 'Helsinki',
   coords: { lat: 60.16552, lon: 24.93859 },
 }
-const ONLINE: TreatmentLocation = { name: 'Verkossa', address: 'Etäyhteys', municipality: 'Etä', coords: null }
+// Online services have no place; the UI words them as remote
+const ONLINE: TreatmentLocation = { name: '', address: '', municipality: '', coords: null }
 const KARVINEN: TreatmentLocation = {
   name: 'Tukiyhdistys Karvinen',
   address: 'Malmin raitti 19, 00700 Helsinki',
