@@ -1,6 +1,7 @@
 import { useEffect, useState, useSyncExternalStore } from 'react'
 import { REAL_GROUPS } from '../data/listings'
 import { PATIENTS, type Patient } from '../data/patients'
+import { debug } from '../lib/debug'
 import { allData, mockExtractor, type Extraction, type Judgment } from '../lib/extraction'
 import { ageAt } from '../lib/hetu'
 import { completeWith, getStatus, MODELS, modelName, subscribe, type ModelId } from '../lib/llm/engine'
@@ -17,12 +18,15 @@ const cellKey = (model: ModelId, patient: Patient) => `${model}|${patient.hetu}`
 const run = async (model: ModelId, patient: Patient, now: Date): Promise<Cell> => {
   const started = performance.now()
   const complete = completeWith(model)
+  const runId = debug.beginRun(`Comparison: ${modelName(model)} · ${patient.firstNames.split(' ')[0]} ${patient.lastName}`)
   try {
     const extraction = await createModelExtractor(complete, model)(allData(patient), now)
     const judgments = await createJudge(complete)(extraction, ageAt(patient.hetu, now), [WIDOW_GROUP], () => undefined)
     return { extraction, judgment: judgments[serviceKey(WIDOW_GROUP)], seconds: (performance.now() - started) / 1000 }
   } catch (error) {
     return { seconds: (performance.now() - started) / 1000, error: error instanceof Error ? error.message : String(error) }
+  } finally {
+    debug.endRun(runId)
   }
 }
 

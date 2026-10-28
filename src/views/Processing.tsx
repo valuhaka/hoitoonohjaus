@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import type { GroupListing } from '../data/groups'
-import type { Extraction, ExtractionInput, PatientExtractor } from '../lib/extraction'
+import { debug } from '../lib/debug'
+import { selectedEntries, type Extraction, type ExtractionInput, type PatientExtractor } from '../lib/extraction'
 import { ageAt } from '../lib/hetu'
 import { getStatus, modelName, subscribe } from '../lib/llm/engine'
 import type { Judge } from '../lib/llm/semantic'
@@ -17,6 +18,88 @@ const PHRASE_MS = 1000
 const JUDGE_TOP = 10
 
 const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+
+type Judged = { done: number; total: number }
+type Watcher = { onStep: (step: 1) => void; onJudged: (judged: Judged) => void }
+
+// One pipeline per opened record. React StrictMode mounts this screen twice in development; both
+// mounts watch the same job, so the model is asked once. Model calls cannot be aborted, so a job
+// nobody watches any more still finishes its extraction but stops before the judgments.
+type Job = {
+  extractor: PatientExtractor
+  judge?: Judge
+  groups: GroupListing[]
+  watchers: Set<Watcher>
+  step: 0 | 1
+  judged: Judged | null
+  result: Promise<Extraction | null>
+}
+const jobs = new WeakMap<ExtractionInput, Job>()
+
+const startJob = (input: ExtractionInput, extractor: PatientExtractor, judge: Judge | undefined, groups: GroupListing[]) => {
+  const { patient } = input
+  const runId = debug.beginRun(`${patient.firstNames.split(' ')[0]} ${patient.lastName}`)
+  const job: Job = { extractor, judge, groups, watchers: new Set(), step: 0, judged: null, result: Promise.resolve(null) }
+  const abandoned = () => {
+    if (job.watchers.size > 0) return false
+    debug.stage('Cancelled', { reason: 'the processing screen closed before the run finished' }, undefined, runId)
+    return true
+  }
+
+  const run = async (): Promise<Extraction | null> => {
+    const now = new Date()
+    debug.stage('Input', {
+      age: ageAt(patient.hetu, now),
+      municipality: patient.municipality,
+      registers: input.registers,
+      entries: selectedEntries(input).length,
+      freeTextChars: input.freeText.length,
+      navigator: input.navigator,
+      listings: groups.length,
+      judge: Boolean(judge),
+    }, undefined, runId)
+    const started = performance.now()
+    const extraction = await extractor(input, now)
+    debug.stage('Extraction', { ...extraction }, performance.now() - started, runId)
+    await wait(EXTRACT_MIN_MS - (performance.now() - started))
+    if (abandoned()) return null
+    job.step = 1
+    job.watchers.forEach(w => w.onStep(1))
+    // A profile means the language model did the extraction, so it can also review the matches
+    if (!judge || !extraction.profile) {
+      debug.stage('Judgments skipped', { reason: judge ? 'keyword extraction has no profile' : 'language model is off' },
+        undefined, runId)
+      await wait(MATCH_MIN_MS)
+      return extraction
+    }
+    const age = ageAt(patient.hetu, now)
+    const ranked = rankGroups(extraction.tags.map(tag => tag.id), patient.homeCoords, groups,
+      { age, municipality: patient.municipality })
+    const candidates = ranked.slice(0, JUDGE_TOP).map(m => m.group)
+    debug.stage('Tag matching', {
+      eligibleMatches: ranked.length,
+      judged: candidates.length,
+      top: ranked.slice(0, JUDGE_TOP).map(m => ({
+        name: m.group.name, score: m.score, matched: m.matched, distanceKm: m.distanceKm, seatsLeft: m.seatsLeft,
+      })),
+    }, undefined, runId)
+    const judging = performance.now()
+    const judgments = await judge(extraction, age, candidates, (done, total) => {
+      job.judged = { done, total }
+      job.watchers.forEach(w => w.onJudged({ done, total }))
+    })
+    debug.stage('Judgments', { judgments }, performance.now() - judging, runId)
+    await wait(MATCH_MIN_MS - (performance.now() - judging))
+    return { ...extraction, judgments }
+  }
+
+  job.result = run().finally(() => {
+    debug.endRun(runId)
+    jobs.delete(input)
+  })
+  jobs.set(input, job)
+  return job
+}
 
 const Waves = () => {
   const ref = useRef<SVGSVGElement>(null)
@@ -45,30 +128,27 @@ export const Processing = ({
   const engine = useSyncExternalStore(subscribe, getStatus)
 
   useEffect(() => {
-    let cancelled = false
-    const run = async () => {
-      const now = new Date()
-      const [extraction] = await Promise.all([extractor(input, now), wait(EXTRACT_MIN_MS)])
-      if (cancelled) return
-      setStep(1)
-      setTick(0)
-      // A profile means the language model did the extraction, so it can also review the matches
-      if (!judge || !extraction.profile) {
-        await wait(MATCH_MIN_MS)
-        if (!cancelled) onDone(extraction)
-        return
-      }
-      const age = ageAt(input.patient.hetu, now)
-      const candidates = rankGroups(extraction.tags.map(tag => tag.id), input.patient.homeCoords, groups,
-        { age, municipality: input.patient.municipality }).slice(0, JUDGE_TOP).map(m => m.group)
-      const [judgments] = await Promise.all([
-        judge(extraction, age, candidates, (done, total) => { if (!cancelled) setJudged({ done, total }) }),
-        wait(MATCH_MIN_MS),
-      ])
-      if (!cancelled) onDone({ ...extraction, judgments })
+    const existing = jobs.get(input)
+    const job = existing && existing.extractor === extractor && existing.judge === judge && existing.groups === groups
+      ? existing
+      : startJob(input, extractor, judge, groups)
+    let watching = true
+    const watcher: Watcher = {
+      onStep: next => {
+        setStep(next)
+        setTick(0)
+      },
+      onJudged: setJudged,
     }
-    run()
-    return () => { cancelled = true }
+    job.watchers.add(watcher)
+    // A second mount joins a job that may already be further along
+    setStep(job.step)
+    setJudged(job.judged)
+    job.result.then(extraction => { if (watching && extraction) onDone(extraction) })
+    return () => {
+      watching = false
+      job.watchers.delete(watcher)
+    }
   }, [input, extractor, judge, groups, onDone])
 
   useEffect(() => {

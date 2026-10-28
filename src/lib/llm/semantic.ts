@@ -5,6 +5,7 @@ import {
   type ConstraintId, type ExtractedConstraint, type ExtractedTag, type Extraction, type Fit, type Judgment,
   type PatientExtractor, type PatientProfile, type SessionPreference,
 } from '../extraction'
+import { debug } from '../debug'
 import { ageAt } from '../hetu'
 import { serviceKey } from '../match'
 
@@ -121,10 +122,17 @@ export const parseExtraction = (raw: string, all: string[]): ModelExtraction => 
 
 export const createModelExtractor = (complete: Complete, source: string): PatientExtractor => async (input, now) => {
   const age = ageAt(input.patient.hetu, now)
+  const runId = debug.currentRun()
   // The patient's own description goes first so trimming a long record never drops it
   const own = sentences({ ...input, registers: [] })
-  const all = [...own, ...sentences({ ...input, freeText: '' })].slice(0, MAX_SENTENCES)
-  const { tags, constraints, profile } = parseExtraction(await complete(extractionPrompt(all, age), EXTRACTION_SCHEMA), all)
+  const record = sentences({ ...input, freeText: '' })
+  const all = [...own, ...record].slice(0, MAX_SENTENCES)
+  debug.stage('Record sentences', {
+    age, ownSentences: own.length, recordSentences: record.length, limit: MAX_SENTENCES, used: all.length, sentences: all,
+  }, undefined, runId)
+  const raw = await complete(extractionPrompt(all, age), EXTRACTION_SCHEMA)
+  const { tags, constraints, profile } = parseExtraction(raw, all)
+  debug.stage('Parsed extraction', { answer: raw, tags, constraints, profile, tagLimit: MAX_TAGS }, undefined, runId)
   return {
     tags: [...tags, ...navigatorTags(input.navigator, tags), ...ageTags(age)],
     constraints: [...constraints, ...olderConstraint(age)],
@@ -195,12 +203,15 @@ export type Judge = (
 // A service the model fails on is simply left unjudged.
 export const createJudge = (complete: Complete): Judge => async (extraction, age, groups, onProgress) => {
   const judgments: Record<string, Judgment> = {}
+  const runId = debug.currentRun()
   onProgress(0, groups.length)
   for (const [i, group] of groups.entries()) {
     try {
       judgments[serviceKey(group)] = parseJudgment(await complete(judgmentPrompt(extraction, age, group), JUDGMENT_SCHEMA))
     } catch (error) {
       console.warn(`Judgment failed for ${group.id}`, error)
+      debug.stage('Judgment failed', { service: group.name, error: error instanceof Error ? error.message : String(error) },
+        undefined, runId)
     }
     onProgress(i + 1, groups.length)
   }

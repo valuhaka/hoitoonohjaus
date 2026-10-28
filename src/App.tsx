@@ -1,11 +1,14 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react'
 import { CATALOGUE, LISTINGS, type DataSource } from './data/listings'
 import { canAccess, type User } from './lib/auth'
 import { mockExtractor, withFallback, type Extraction, type ExtractionInput } from './lib/extraction'
-import { completeWith, DEFAULT_MODEL, hasWebGPU, loadModel, modelName } from './lib/llm/engine'
+import {
+  completeWith, getActiveModel, hasWebGPU, loadModel, modelName, runtimeOf, subscribeActiveModel,
+} from './lib/llm/engine'
 import { createJudge, createModelExtractor } from './lib/llm/semantic'
 import { logAccess, type AccessReason, type AuditEntry } from './lib/registry'
 import { DICTS, I18n, LANGS, type Lang } from './i18n'
+import { DebugPanel, useDebugToggle } from './views/DebugPanel'
 import { Login } from './views/Login'
 import { ModelCompare } from './views/ModelCompare'
 import { PatientSearch } from './views/PatientSearch'
@@ -30,6 +33,8 @@ export const App = () => {
   const [ai, setAi] = useState(hasWebGPU)
   // Developer page that runs every model on the synthetic patients
   const [comparing, setComparing] = useState(() => location.hash === '#vertailu')
+  const [debugOpen, setDebugOpen] = useDebugToggle()
+  const model = useSyncExternalStore(subscribeActiveModel, getActiveModel)
   const t = DICTS[lang]
 
   useEffect(() => { document.documentElement.lang = lang }, [lang])
@@ -40,14 +45,14 @@ export const App = () => {
   }, [])
 
   // Start the download at login so the model is ready by the time a patient is opened
-  useEffect(() => { if (user && ai) loadModel().catch(() => undefined) }, [user, ai])
+  useEffect(() => { if (user && ai) loadModel(model).catch(() => undefined) }, [user, ai, model])
 
   const extractor = useMemo(() => {
     if (!ai) return mockExtractor
-    const llm = createModelExtractor(completeWith(DEFAULT_MODEL), `webllm:${DEFAULT_MODEL}`)
+    const llm = createModelExtractor(completeWith(model), `${runtimeOf(model)}:${model}`)
     return withFallback(llm, mockExtractor)
-  }, [ai])
-  const judge = useMemo(() => (ai ? createJudge(completeWith(DEFAULT_MODEL)) : undefined), [ai])
+  }, [ai, model])
+  const judge = useMemo(() => (ai ? createJudge(completeWith(model)) : undefined), [ai, model])
 
   const open = (input: ExtractionInput, reason: AccessReason | 'own' | 'proxy') => {
     if (!user || !canAccess(user, input.patient.hetu)) return
@@ -79,7 +84,7 @@ export const App = () => {
           <button className={`badge data-switch ${ai ? 'on' : ''}`} role="switch" aria-checked={ai}
             disabled={!hasWebGPU()} title={hasWebGPU() ? t.ai.toggle : t.ai.noWebGPU} onClick={() => setAi(on => !on)}>
             <span className="switch-track" aria-hidden="true"><span className="switch-knob" /></span>
-            {ai ? t.ai.on(modelName(DEFAULT_MODEL)) : t.ai.off}
+            {ai ? t.ai.on(modelName(model)) : t.ai.off}
           </button>
         </div>
         <strong className="brand">{t.appName}</strong>
@@ -114,7 +119,8 @@ export const App = () => {
         <Results patient={screen.input.patient} extraction={screen.extraction} groups={LISTINGS[dataSource]} user={user}
           onNewSearch={() => setScreen({ name: 'start' })} />
       )}
-      <StatusBar user={user} syncedAt={syncedAt} />
+      {debugOpen && <DebugPanel onClose={() => setDebugOpen(false)} />}
+      <StatusBar user={user} syncedAt={syncedAt} debugOpen={debugOpen} onToggleDebug={() => setDebugOpen(o => !o)} />
     </I18n.Provider>
   )
 }

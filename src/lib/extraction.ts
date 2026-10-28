@@ -1,4 +1,5 @@
 import { HASHTAGS, HASHTAG_IDS, type HashtagId } from '../data/hashtags'
+import { debug } from './debug'
 import type { Patient, RegisterId } from '../data/patients'
 import { ageAt } from './hetu'
 import { NAVIGATORS, type NavigatorResult } from './navigator'
@@ -106,10 +107,12 @@ export const olderConstraint = (age: number): ExtractedConstraint[] =>
 // Falls back to the keyword extractor when the language model cannot run (no WebGPU, download fails)
 export const withFallback = (primary: PatientExtractor, fallback: PatientExtractor): PatientExtractor =>
   async (input, now) => {
+    const runId = debug.currentRun()
     try {
       return await primary(input, now)
     } catch (error) {
       console.warn('Language model extraction failed, using keywords', error)
+      debug.stage('Fallback to keywords', { error: error instanceof Error ? error.message : String(error) }, undefined, runId)
       return { ...(await fallback(input, now)), source: 'mock (fallback)' }
     }
   }

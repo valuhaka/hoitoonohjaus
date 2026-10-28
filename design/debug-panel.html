@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Psyykkeri – Debug panel</title>
+  <link rel="stylesheet" href="../src/styles.css" />
+</head>
+<body>
+<main class="content">
+  <p class="hint">The debug panel docks above the status bar. Shown here on the Pipeline tab with one run.</p>
+</main>
+<aside class="debug-panel" aria-label="Debug panel">
+  <header class="titlebar">
+    <h2>Debug <span class="hint">11 calls · 1 failed · 1 runs</span></h2>
+    <div class="debug-actions">
+      <button class="link">Export JSON</button>
+      <button class="link">Clear</button>
+      <button class="link" aria-pressed="false">Wide</button>
+      <button class="titlebar-close" aria-label="Close debug panel">×</button>
+    </div>
+  </header>
+  <div class="debug-tabs" role="tablist">
+    <button role="tab" class="segment">Overview</button>
+    <button role="tab" class="segment active" aria-selected="true">Pipeline</button>
+    <button role="tab" class="segment">Calls</button>
+    <button role="tab" class="segment">Ranking</button>
+    <button role="tab" class="segment">Engine log</button>
+    <button role="tab" class="segment">Storage</button>
+  </div>
+  <div class="debug-body" role="tabpanel">
+    <div class="debug-split">
+      <ul class="debug-list">
+        <li>
+          <button class="debug-item active">
+            <strong>Aino Virtanen</strong>
+            <span class="hint">14:02:11.380 · 41.20 s · 6 steps</span>
+          </button>
+        </li>
+      </ul>
+      <div class="debug-detail">
+        <h3>Aino Virtanen</h3>
+        <p class="hint">Started 14:02:11.380, took 41.20 s</p>
+        <details class="debug-stage" open>
+          <summary><span class="debug-offset">+0 ms</span><strong>Input</strong></summary>
+          <pre class="debug-pre">{
+  "age": 68,
+  "registers": ["terveys", "sosiaali"],
+  "entries": 4,
+  "judge": true
+}</pre>
+          <button class="link debug-copy">Copy</button>
+        </details>
+        <details class="debug-stage" open>
+          <summary><span class="debug-offset">+6.84 s</span><strong>Parsed extraction</strong></summary>
+          <div class="debug-dropped">
+            <strong>Dropped by grounding</strong>
+            <pre class="debug-pre">{ "tags": [{ "id": "made-up", "sentence": 1 }], "constraints": [] }</pre>
+          </div>
+          <pre class="debug-pre">{ "tags": [{ "id": "suru", "evidence": "Puoliso menehtyi 2024." }] }</pre>
+        </details>
+        <section class="debug-block">
+          <h4>Model calls (2)<button class="link debug-copy">Copy</button></h4>
+          <table class="debug-table selectable">
+            <thead><tr><th>#</th><th>Model</th><th>Kind</th><th>State</th><th>Generation</th><th>Decode tok/s</th></tr></thead>
+            <tbody>
+              <tr class="active"><td>3</td><td>Qwen3.5 2B</td><td>extraction</td><td><span class="debug-state done">done</span></td><td>6.21 s</td><td>38.4</td></tr>
+              <tr><td>4</td><td>Qwen3.5 2B</td><td>judgment</td><td><span class="debug-state failed">failed</span></td><td>1.02 s</td><td>–</td></tr>
+            </tbody>
+          </table>
+        </section>
+        <section class="debug-block">
+          <h4>Engine</h4>
+          <dl class="debug-facts">
+            <div><dt>State</dt><dd><span class="debug-state ready">ready</span></dd></div>
+            <div><dt>Load time</dt><dd>12.40 s</dd></div>
+          </dl>
+        </section>
+      </div>
+    </div>
+  </div>
+</aside>
+<footer class="statusbar">
+  <span>Länsi-Uudenmaan hyvinvointialue</span>
+  <button class="debug-toggle on" aria-pressed="true">Debug</button>
+</footer>
+</body>
+</html>

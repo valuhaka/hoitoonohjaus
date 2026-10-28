@@ -124,7 +124,7 @@ MapLibre GL with an offline Protomaps basemap (`public/maps/`, see README.md), s
 
 ### Language model switch and notes
 
-A second `.data-switch` (state class `.on`) next to the data source switch turns the browser language model on and off ("Kielimalli: Qwen3.5 2B" / "Avainsanahaku"). It is disabled, with an explanatory tooltip, when the browser has no WebGPU. While it is on, the model starts downloading at login.
+A second `.data-switch` (state class `.on`) next to the data source switch turns the browser language model on and off ("Kielimalli: Qwen3.5 2B" / "Avainsanahaku"). The label names the active model, which is chosen in the debug panel (Overview, "Model for patient searches") and kept per browser. It is disabled, with an explanatory tooltip, when the browser has no WebGPU. While it is on, the model starts downloading at login.
 
 - Processing: below the phrase, `.engine-status` shows the download percentage and then "Kielimalli arvioi palveluja: n/10" while the model reviews the best tag matches.
 - Topic list: `.model-summary` gives the model's one-sentence summary and any session preference (evidence sentence in the tooltip). With keyword extraction a `.hint` says so instead.
@@ -143,7 +143,15 @@ Every dialog is a window (`Modal.tsx`): a `.titlebar` with the title and a text-
 
 ### Status bar
 
-`.statusbar`, fixed to the bottom on every screen, 2.25rem tall with 0.9rem text: the organisation name ("Länsi-Uudenmaan hyvinvointialue"), then once signed in a small green light with "Yhdistetty: LUVN", the last sync time, and the signed-in user. Segments are separated by grooves (a border plus a white line). On narrow screens the user segment is hidden. The user's name appears only here, not in the top bar.
+`.statusbar`, fixed to the bottom on every screen, 2.25rem tall with 0.9rem text: the organisation name ("Länsi-Uudenmaan hyvinvointialue"), then once signed in a small green light with "Yhdistetty: LUVN", the last sync time, and the signed-in user. Segments are separated by grooves (a border plus a white line). On narrow screens the user segment is hidden. The user's name appears only here, not in the top bar. The right end holds the debug toggle (`button.debug-toggle`, `.on` while open): a text segment with a groove on its left, no slanted shape.
+
+### Debug panel
+
+A developer window (`src/views/DebugPanel.tsx`, `.debug-panel`) docked above the status bar on the right, 760px wide (`.wide` fills the window). It opens from the status bar toggle or Alt+Shift+D; whether it is open and the last tab are remembered in `localStorage`. It is a developer tool, so its text is English only and not in `i18n.ts`.
+- The window: a `.titlebar` with call/run counts and the text actions Export JSON, Clear, Wide/Narrow and ×; then tabs (`.debug-tabs`, joined `.segment` buttons); then the scrolling `.debug-body`.
+- Tabs: Overview (engine state, loaded model details, per-model call statistics, WebGPU adapter and limits), Pipeline (one run per patient search: each step with its time offset and data as `.debug-stage` details, plus the run's model calls), Calls (every completion: timings, tokens, prompt sent, raw and parsed answer, options, schema), Ranking (the live results ranking: tag score × weight = final, adjustments, cards hidden by filters greyed), Engine log (load, ready, unload, error), Storage (quota, persistence, Cache Storage with per-cache size and delete).
+- Parts: `.debug-block` (uppercase grey heading with an optional Copy link), `.debug-facts` (key–value grid), `.debug-table` (compact table; `.selectable` rows highlight like the patient search), `.debug-pre` (inset monospace box; `.tall` for prompts), `.debug-state.<state>` (green done/ready, red failed/error, warning-coloured queued/running/loading), `.debug-split` with `.debug-list` / `button.debug-item` (run list left, details right; stacked below 640px), `.debug-dropped` (warning box listing answer items the grounding step dropped).
+- The data comes from `src/lib/debug.ts`, an in-memory record filled by the engine, the extractor, the processing screen and the results page. It is lost on reload and never leaves the browser.
 
 ### Information dialog
 
@@ -170,8 +178,9 @@ Each component has a static reference file in `design/` (open `design/index.html
 | `treatment-browser.html` | `src/views/TreatmentBrowser.tsx` | `.home`, `.search-panel`, `.browser`, `.browser-layout`, `.browser-main`, `.news`, `.news-list`, `.news-title`, `.news-meta` |
 | `map.html` | `src/views/GroupMap.tsx`, `src/lib/basemap.ts` | `.results-layout`, `.map-panel`, `.map`, `.map-canvas`, `.map-pin`, `.map-home`, `.map-contact`, `.map-expand`, `.map-legend` |
 | `booking-dialog.html` | `src/views/BookingDialog.tsx` | `.modal.wide`, `.details`, `.criteria`, `.contact`, `.success`, `a.button` |
-| `statusbar.html` | `src/views/StatusBar.tsx` | `.statusbar`, `.status-light` |
+| `statusbar.html` | `src/views/StatusBar.tsx` | `.statusbar`, `.status-light`, `.debug-toggle` |
 | `model-compare.html` | `src/views/ModelCompare.tsx` | `.compare`, `.compare-controls`, `.compare-table`, `.compare-situation`, `.compare-fit`, `.tag.constraint` |
+| `debug-panel.html` | `src/views/DebugPanel.tsx` | `.debug-toggle`, `.debug-panel`, `.debug-tabs`, `.debug-body`, `.debug-block`, `.debug-facts`, `.debug-table`, `.debug-pre`, `.debug-state`, `.debug-split`, `.debug-item`, `.debug-stage`, `.debug-dropped` |
 
 ## Buttons
 

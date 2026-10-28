@@ -1,12 +1,13 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { GroupListing } from '../data/groups'
 import { HASHTAGS, HASHTAG_IDS, type HashtagId } from '../data/hashtags'
 import type { Patient } from '../data/patients'
 import type { User } from '../lib/auth'
+import { debug } from '../lib/debug'
 import type { Extraction } from '../lib/extraction'
 import { ageAt } from '../lib/hetu'
 import { applyFilters, feeScale, guessFilters, type Filters } from '../lib/filters'
-import { rankGroups, semanticRank } from '../lib/match'
+import { rankGroups, semanticRank, serviceKey, type Adjustment } from '../lib/match'
 import { rankLabel } from '../lib/rank'
 import { useT, type Lang } from '../i18n'
 import { BookingDialog } from './BookingDialog'
@@ -16,6 +17,9 @@ import { GroupMap } from './GroupMap'
 import { PatientBanner } from './PatientBanner'
 
 const label = (id: HashtagId, lang: Lang) => HASHTAGS[id][lang]
+
+const adjustmentDetail = (a: Adjustment) =>
+  a.kind === 'fit' ? `${a.fit}: ${a.reason}` : a.kind === 'session' ? `prefers ${a.preference}` : `outside ${a.target}`
 
 export const Results = ({
   patient,
@@ -49,6 +53,30 @@ export const Results = ({
     return semanticRank(byTags, { age, profile: extraction.profile, judgments: extraction.judgments })
   }, [tags, patient, groups, holds, extraction])
   const visible = applyFilters(ranked, filters, new Date())
+
+  // The debug panel shows the live ranking, including the cards the filters hide
+  useEffect(() => {
+    const shown = new Set(applyFilters(ranked, filters, new Date()).map(m => m.group.id))
+    debug.ranking({
+      tags,
+      rows: ranked.map(m => {
+        const weight = (m.adjustments ?? []).reduce((w, a) => w * a.weight, 1)
+        return {
+          name: m.group.name,
+          organiser: m.group.organiser,
+          serviceKey: serviceKey(m.group),
+          tagScore: weight === 0 ? 0 : m.score / weight,
+          weight,
+          score: m.score,
+          matched: m.matched,
+          distanceKm: m.distanceKm,
+          seatsLeft: m.seatsLeft,
+          visible: shown.has(m.group.id),
+          adjustments: (m.adjustments ?? []).map(a => ({ kind: a.kind, detail: adjustmentDetail(a), weight: a.weight })),
+        }
+      }),
+    })
+  }, [ranked, filters, tags])
   const bookingMatch = ranked.find(m => m.group.id === bookingFor)
   const addable = HASHTAG_IDS.filter(id => !tags.includes(id))
   // A non-disclosure order hides home and care contacts from everyone but the patient
