@@ -3,7 +3,7 @@ import { CATALOGUE, REAL_GROUPS } from './data/listings'
 import { canAccess, type User } from './lib/auth'
 import { mockExtractor, type Extraction, type ExtractionInput } from './lib/extraction'
 import { logAccess, type AccessReason, type AuditEntry } from './lib/registry'
-import { DICTS, I18n, type Lang } from './i18n'
+import { DICTS, I18n, LANGS, type Lang } from './i18n'
 import { Login } from './views/Login'
 import { PatientSearch } from './views/PatientSearch'
 import { Processing } from './views/Processing'
@@ -13,20 +13,34 @@ import { StatusBar } from './views/StatusBar'
 import { TopBar } from './views/TopBar'
 import { TreatmentBrowser } from './views/TreatmentBrowser'
 
+// The chosen language survives a reload; storage may be blocked, so Finnish is the fallback
+const LANG_KEY = 'psyykkeri.lang'
+const storedLang = (): Lang => {
+  try {
+    const value = localStorage.getItem(LANG_KEY)
+    return LANGS.find(l => l === value) ?? 'fi'
+  } catch {
+    return 'fi'
+  }
+}
+
 type Screen =
   | { name: 'start' }
   | { name: 'processing'; input: ExtractionInput }
   | { name: 'results'; input: ExtractionInput; extraction: Extraction }
 
 export const App = () => {
-  const [lang, setLang] = useState<Lang>('fi')
+  const [lang, setLang] = useState<Lang>(storedLang)
   const [user, setUser] = useState<User | null>(null)
   const [syncedAt, setSyncedAt] = useState(() => new Date())
   const [screen, setScreen] = useState<Screen>({ name: 'start' })
   const [, setAudit] = useState<AuditEntry[]>([])
   const t = DICTS[lang]
 
-  useEffect(() => { document.documentElement.lang = lang }, [lang])
+  useEffect(() => {
+    document.documentElement.lang = lang
+    try { localStorage.setItem(LANG_KEY, lang) } catch { /* not remembered */ }
+  }, [lang])
 
   const open = (input: ExtractionInput, reason: AccessReason | 'own' | 'proxy') => {
     if (!user || !canAccess(user, input.patient.hetu)) return

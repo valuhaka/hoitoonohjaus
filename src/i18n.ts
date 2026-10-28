@@ -41,8 +41,8 @@ const fi = {
   colHetu: 'Henkilötunnus',
   colMunicipality: 'Kotikunta',
   nonDisclosure: 'Turvakielto',
-  confirmTitle: 'Avaa asiakkaan tiedot',
-  confirmIdentity: 'Varmista asiakkaan henkilöllisyys ennen tietojen avaamista.',
+  confirmTitle: 'Avaa potilaan tiedot',
+  confirmIdentity: 'Varmista potilaan henkilöllisyys ennen tietojen avaamista.',
   reasonLabel: 'Käyttöperuste',
   reasons: {
     careRelationship: 'Hoitosuhde',
@@ -60,7 +60,6 @@ const fi = {
   resultsTitle: 'Sopivat ryhmät',
   noMatches: 'Ei sopivia ryhmiä valituilla aiheilla.',
   noFilteredMatches: 'Ei ryhmiä valituilla suodattimilla.',
-  fit: 'sopivuus',
   remote: 'Etäryhmä',
   locationUnknown: 'Paikka ei tiedossa',
   feeUnknown: 'Hinta ei tiedossa',
@@ -275,8 +274,8 @@ const sv: Dict = {
   colHetu: 'Personbeteckning',
   colMunicipality: 'Hemkommun',
   nonDisclosure: 'Spärrmarkering',
-  confirmTitle: 'Öppna klientens uppgifter',
-  confirmIdentity: 'Kontrollera klientens identitet innan uppgifterna öppnas.',
+  confirmTitle: 'Öppna patientens uppgifter',
+  confirmIdentity: 'Kontrollera patientens identitet innan uppgifterna öppnas.',
   reasonLabel: 'Grund för användning',
   reasons: {
     careRelationship: 'Vårdrelation',
@@ -294,7 +293,6 @@ const sv: Dict = {
   resultsTitle: 'Lämpliga grupper',
   noMatches: 'Inga lämpliga grupper för de valda temana.',
   noFilteredMatches: 'Inga grupper med de valda filtren.',
-  fit: 'matchning',
   remote: 'Distansgrupp',
   locationUnknown: 'Plats okänd',
   feeUnknown: 'Pris okänt',
@@ -315,7 +313,7 @@ const sv: Dict = {
   free: 'Avgiftsfri',
   perSession: 'gång',
   sessions: (n: number) => `${n} gånger`,
-  reserved: 'Plats reserverad',
+  reserved: 'Plats bokad',
   newSearch: 'Ny sökning',
   home: 'Hem',
   mapLabel: 'Grupperna på kartan',
@@ -337,7 +335,7 @@ const sv: Dict = {
   useRecords: { professional: 'Patientuppgifter', own: 'Egna hälsouppgifter' },
   registers: {
     primary: 'Primärvård',
-    mentalHealth: 'Mentalvårds- och missbrukartjänster',
+    mentalHealth: 'Mentalvårds- och missbrukstjänster',
     specialist: 'Specialiserad sjukvård',
     social: 'Socialvård',
     school: 'Elev- och studerandevård',
@@ -464,10 +462,10 @@ const sv: Dict = {
     contactOnly: 'Kom överens om platsen direkt med kontaktpersonen.',
     openExternal: (system: string) => `Öppna: ${system}`,
     system: 'Bokningssystem',
-    confirm: 'Bekräfta reservering',
-    pending: 'Reserverar…',
-    done: 'Platsen är reserverad. Bokningskod:',
-    failed: 'Reserveringen misslyckades. Kontakta kontaktpersonen.',
+    confirm: 'Bekräfta bokningen',
+    pending: 'Bokar…',
+    done: 'Platsen är bokad. Bokningskod:',
+    failed: 'Bokningen misslyckades. Kontakta kontaktpersonen.',
   },
 }
 
@@ -482,7 +480,7 @@ const en: Dict = {
     group: 'Group treatment',
     peerGroup: 'Peer support group',
     individual: 'Individual appointments',
-    dropIn: 'Low-threshold conversation help',
+    dropIn: 'Drop-in support',
     helpline: 'Helpline',
     chat: 'Chat',
     online: 'Online therapy',
@@ -526,7 +524,6 @@ const en: Dict = {
   resultsTitle: 'Matching groups',
   noMatches: 'No matching groups for the selected topics.',
   noFilteredMatches: 'No groups match the selected filters.',
-  fit: 'fit',
   remote: 'Remote group',
   locationUnknown: 'Location not published',
   feeUnknown: 'Price not published',
@@ -705,11 +702,12 @@ const en: Dict = {
 
 export const DICTS: Record<Lang, Dict> = { fi, sv, en }
 
-// Official Swedish names of the region's municipalities; Finnish and English use the Finnish name
+// Official Swedish names of the municipalities in the data (LUVN, HUS and nearby); Finnish and English use the Finnish name
 const SWEDISH_NAMES: Record<string, string> = {
   Espoo: 'Esbo', Hanko: 'Hangö', Inkoo: 'Ingå', Karkkila: 'Högfors', Kauniainen: 'Grankulla',
   Kirkkonummi: 'Kyrkslätt', Lohja: 'Lojo', Raasepori: 'Raseborg', Siuntio: 'Sjundeå', Vihti: 'Vichtis',
-  Helsinki: 'Helsingfors', Vantaa: 'Vanda',
+  Helsinki: 'Helsingfors', Vantaa: 'Vanda', Kerava: 'Kervo', Järvenpää: 'Träskända', Tuusula: 'Tusby',
+  Sipoo: 'Sibbo', Porvoo: 'Borgå',
 }
 
 export const placeName = (municipality: string, lang: Lang) =>

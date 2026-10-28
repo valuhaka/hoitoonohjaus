@@ -68,7 +68,7 @@ Depth comes from light, never from decoration. Raised surfaces are slightly lit 
 - **No hashtag notation.** Topics are shown as plain words with an initial capital (Yksinäisyys, Krooninen kipu). The `#` ids exist only in data and the extraction prompt.
 - **No explanatory subtitles** that repeat what the screen already shows (result counts, "update instantly" hints, data source lines, eyebrow labels above dialog titles). Keep notices with legal or safety meaning (the access log notice, identity confirmation).
 - **Distances:** number and unit only (`17 km`). Remote groups say "Etäryhmä".
-- **Languages:** Finnish (default), Swedish, English. Dates, times and fees are formatted per locale (`fi-FI`, `sv-FI`, `en-GB`), and municipalities use their Swedish names in Swedish (`placeName`). No language may leak into another (see below).
+- **Languages:** Finnish (default), Swedish, English. Dates, times and fees are formatted per locale (`fi-FI`, `sv-FI`, `en-GB`), and municipalities use their Swedish names in Swedish (`placeName`; every municipality in the data needs one). The chosen language is remembered in the browser (`localStorage`, Finnish if storage is blocked). No language may leak into another (see below).
 - **Explanations go in tooltips:** extracted topics and suggested filters show their evidence sentence in a `title` tooltip, not as visible text.
 
 ## Language rule: no leaks between languages
@@ -79,14 +79,14 @@ Depth comes from light, never from decoration. Raised surfaces are slightly lit 
 - MapLibre's own control texts (`t.map.controls`, passed as the map `locale`);
 - codes the UI words: professional titles (`t.titles`), listing kinds (`t.kinds`), derived evidence such as the age (`ageEvidence`), enrolment states and criteria.
 
-Data must not carry UI wording. Store a key or a value (`{ age: 68 }`, `title: 'psychologist'`, `kind: 'peerGroup'`) and let the view word it with `t`.
+Data must not carry UI wording. Store a key or a value (`{ age: 68 }`, `title: 'psychologist'`, `kind: 'peerGroup'`) and let the view word it with `t`. Remote services leave address and municipality empty; the format makes the UI say "Etäryhmä".
 
 **Stays as written:** text that organisers or records publish. That means group names, organisers, addresses, the organisers' own method names and criteria notes, contact names and roles, and patient record texts. Proper nouns (Psyykkeri, Terapianavigaattori, OpenStreetMap) and language codes (FI / SV) are the same in every language.
 
 **Enforced by:**
 1. **Types.** `sv` and `en` are typed as `Dict = typeof fi`, so a key missing from any language fails `tsc`.
-2. **`src/lib/i18n.test.ts`,** run by `npm test`. It fails on words written directly between JSX tags and on words in quoted `aria-label`, `title`, `placeholder` or `alt` attributes in `src/**/*.tsx`. It also checks that all three dictionaries have the same keys. Write `{t.x}` instead; a sample rank letter uses `rankLabel(0)`.
-3. **A sweep before release.** Switch the running app to SV and then EN and go through every screen and dialog. Collect the text nodes plus `aria-label`, `title` and `placeholder` values, and compare them with the dictionaries. Anything that is neither in that language's dictionary nor listing or record data is a leak. The static checks can't see strings built in `.ts` files, so the sweep is what catches those.
+2. **`src/lib/i18n.test.ts`,** run by `npm test`. It fails on words written directly between JSX tags and on words in quoted `aria-label`, `title`, `placeholder` or `alt` attributes in `src/**/*.tsx`. It also checks that all three dictionaries have the same keys and that every municipality in the data has a Swedish name. Write `{t.x}` instead; a sample rank letter uses `rankLabel(0)`.
+3. **A sweep before release,** `npm run sweep` with `npm run dev` running (first time: `npx playwright install chromium`). It signs in as each role in FI, SV and EN, goes from login to the booking dialog, and lists text that the Finnish run also shows and that is neither listing or record data nor in that language's dictionary. It exits non-zero on a leak. By hand, the same means: switch the running app to SV and then EN and go through every screen and dialog. Collect the text nodes plus `aria-label`, `title` and `placeholder` values, and compare them with the dictionaries. Anything that is neither in that language's dictionary nor listing or record data is a leak. The static checks can't see strings built in `.ts` files, so the sweep is what catches those.
 
 ## Screens and components
 
