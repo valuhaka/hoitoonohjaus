@@ -16,3 +16,4 @@
 
 - All styles live in `src/styles.css`; static component files are in `design/`
 - Follow `style.md` and update it whenever styles, tokens or components change
+- `styleguide/styleguide.md` is the target design (tokens, components, voice). Move styles toward it, and see its "Rules for agents" section
